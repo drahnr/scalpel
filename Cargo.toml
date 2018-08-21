@@ -1,0 +1,35 @@
+[package]
+name = "scalpel-bin"
+version = "0.2.0"
+authors = ["Bernhard Schuster <bernhard@ahoi.io>", "Korbinian Maier <korbinian.maier@tum.de>"]
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+categories = ["binary", "tooling", "embedded"]
+repository = "https://github.com/nello-io/scalpel"
+description = "binary modification tool, cut, stitch, replace, sign"
+[dependencies]
+docopt = "0.8"
+serde = "1.0"
+serde_derive = "1.0"
+log = "0.4"
+env_logger = "0.5"
+lazy_static = "1.1.0"
+bytes = "0.4.9"
+ring = "0.12.1"
+untrusted = "0.5.1"
+regex = "^1.0.2"
+failure = "^0.1.2"
+failure_derive = "^0.1.2"
+common_failures = "^0.1.0"
+rand = "^0.5.5"
+
+[dev-dependencies]
+rand = "^0.5.5"
+
+[[bin]]
+name = "scalpel"
+path = "src/main.rs"
+plugin = false
+proc-macro = false
+harness = true
+test = true
