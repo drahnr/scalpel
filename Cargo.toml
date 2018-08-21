@@ -4,7 +4,7 @@ version = "0.2.0"
 authors = ["Bernhard Schuster <bernhard@ahoi.io>", "Korbinian Maier <korbinian.maier@tum.de>"]
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
-categories = ["binary", "tooling", "embedded"]
+categories = ["development-tools", "command-line-utilities", "embedded"]
 repository = "https://github.com/nello-io/scalpel"
 description = "binary modification tool, cut, stitch, replace, sign"
 [dependencies]
