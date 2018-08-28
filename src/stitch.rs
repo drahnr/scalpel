@@ -54,7 +54,7 @@ fn stitch(mut bytes: BytesMut, new: BytesMut, offset: &usize, fill_pattern: &Fil
     } else {
         match fill_pattern {
             FillPattern::Zero => bytes.resize(*offset, 0x0),
-            FillPattern::One => bytes.resize(*offset, 0x1),
+            FillPattern::One => bytes.resize(*offset, 0xFF),
             FillPattern::Random => {
                 let mut padding = vec![0; *offset-bytes.len()];
                 ::rand::thread_rng().try_fill(&mut padding[..])?;
