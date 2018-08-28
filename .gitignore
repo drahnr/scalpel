@@ -2,6 +2,7 @@
 /target/
 **/*.rs.bk
 /.vscode/
+Cargo.lock
 
 # tmp files from tests
 tmp/*signed*
