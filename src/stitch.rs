@@ -26,7 +26,7 @@ pub fn stitch_files(files: Vec<PathBuf>, offsets: Vec<usize>, output: String, fi
                 return ScalpelError::OpeningError.context(e)
             })?;
         
-        Ok(stitch(stitched, content, offset, &fill_pattern)?)
+        Ok(stitch(stitched, content, offset, &fill_pattern).map_err(|e| ScalpelError::OverlapError.context(format!("Failed to stitch {:?}: {}", elem, e)))?)
         
     });
 
@@ -40,7 +40,7 @@ fn read_file(name: &Path) -> Result<BytesMut> {
     let mut file = OpenOptions::new()
         .read(true)
         .open(name)
-        .map_err(|err| ScalpelError::OpeningError.context(err))?;
+        .map_err(|err| ScalpelError::OpeningError.context(format!("{}: {:?}", err, name )))?;
 
     let mut buf = Vec::new();
     file.read_to_end(&mut buf)?;
@@ -50,7 +50,7 @@ fn read_file(name: &Path) -> Result<BytesMut> {
 
 fn stitch(mut bytes: BytesMut, new: BytesMut, offset: &usize, fill_pattern: &FillPattern) -> Result<BytesMut> {
     if bytes.len() > *offset {
-        return Err(ScalpelError::OverlapError.into());
+        return Err(ScalpelError::OverlapError.context(format!("Offset {} is smaller than length {} of previous binaries", offset, bytes.len())).into());
     } else {
         match fill_pattern {
             FillPattern::Zero => bytes.resize(*offset, 0x0),
@@ -73,7 +73,7 @@ fn write_file(path: &Path, bytes: BytesMut) -> Result<()> {
         .write(true)
         .create(true)
         .open(path)
-        .map_err(|err| ScalpelError::OpeningError.context(err).context(format!("Failed to open {:?}", path )))?;
+        .map_err(|err| ScalpelError::OpeningError.context(format!("{}: {:?}", err, path )))?;
 
     file.write(&bytes)?;
 
