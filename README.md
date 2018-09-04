@@ -11,17 +11,17 @@ This is mostly used for the case where parts of the binary need to be extracted 
 * cut firmware into pieces from an all-in-one blob
 
     ```bash
-    scalpel --start 0 --end 4096 --output bootloader.bin firmware.bin
-    scalpel --start 4Ki --size 241664 --output part_A.bin firmware.bin
-    scalpel --start 282624 --size 241664 --output part_B.bin firmware.bin
+    scalpel cut --start 0 --end 4096 --output bootloader.bin firmware.bin
+    scalpel cut --start 4Ki --size 241664 --output part_A.bin firmware.bin
+    scalpel cut --start 282624 --size 241664 --output part_B.bin firmware.bin
     ```
 
 * stitch firmware pieces together such as bootloader and application
 
     ```bash
-    scalpel stitch --binary tmp/test_bytes --offset 0    --binary tmp/test_bytes --offset 2048 --fill-pattern zero
-    scalpel stitch --binary tmp/test_bytes --offset 2048 --binary tmp/test_bytes --offset 0 --fill-pattern one
-    scalpel stitch --binary tmp/test_bytes --offset 2058 --binary tmp/test_bytes --offset 10 --fill-pattern random
+    scalpel stitch --binary tmp/test_bytes --offset 0    --binary tmp/test_bytes --offset 2048 --fill-pattern zero --output stitched.bin
+    scalpel stitch --binary tmp/test_bytes --offset 2048 --binary tmp/test_bytes --offset 0 --fill-pattern one --output stitched.bin
+    scalpel stitch --binary tmp/test_bytes --offset 2058 --binary tmp/test_bytes --offset 10 --fill-pattern random --output stitched.bin
     ```
 
 * [alpha] sign firmware for authenticity
