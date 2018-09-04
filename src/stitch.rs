@@ -16,7 +16,6 @@ impl Default for FillPattern {
 
 pub fn stitch_files(files: Vec<PathBuf>, offsets: Vec<usize>, output: String, fill_pattern: FillPattern) -> Result<()> {
     
-    // TODO: sort files by offset
     let (files, offsets) = sort_vec_by_offset(files, offsets)?;
 
     let stitched: Result<BytesMut>
