@@ -74,7 +74,7 @@ struct Args {
     arg_keyfile: String,
     arg_file: String,
     arg_files: Vec<String>,
-    flag_offset: Vec<usize>,
+    flag_offset: Vec<ByteOffset>,
     flag_fill_pattern: Option<stitch::FillPattern>,
     flag_format: Option<String>,
     flag_version: bool,

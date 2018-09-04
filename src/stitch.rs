@@ -4,6 +4,7 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use errors::*;
 use rand::{Rng};
+use byte_offset::*;
 
 #[derive(Deserialize, Debug)]
 pub enum FillPattern { Random, Zero, One}
@@ -14,8 +15,10 @@ impl Default for FillPattern {
     }
 }
 
-pub fn stitch_files(files: Vec<PathBuf>, offsets: Vec<usize>, output: String, fill_pattern: FillPattern) -> Result<()> {
+pub fn stitch_files(files: Vec<PathBuf>, offsets: Vec<ByteOffset>, output: String, fill_pattern: FillPattern) -> Result<()> {
     
+    let offsets: Vec<usize> = offsets.iter().map(|ele| ele.as_usize()).collect();
+
     let (files, offsets) = sort_vec_by_offset(files, offsets)?;
 
     let stitched: Result<BytesMut>
@@ -103,7 +106,7 @@ mod test {
     fn stitch_it() {
         let files = vec![ PathBuf::from("tmp/test_bytes"), PathBuf::from("tmp/test_bytes")];
 
-        let offsets = vec![0, 2048];
+        let offsets = vec![ByteOffset::new(0,Magnitude::Unit), ByteOffset::new(2,Magnitude::Ki)];
         super::stitch_files(files, offsets, "stitched_test".to_string(), FillPattern::Zero).expect("Failed to stitch two files");
         let buf = {
             let mut file = OpenOptions::new()

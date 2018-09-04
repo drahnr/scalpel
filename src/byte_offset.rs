@@ -49,6 +49,10 @@ impl Magnitude {
             Magnitude::Gi => 1024u64*1024u64*1024u64,
         }
     }
+
+    pub fn as_usize(&self) -> usize {
+        self.as_u64() as usize
+    }
 }
 
 
@@ -64,6 +68,9 @@ impl ByteOffset {
     }
     pub fn as_u64(&self) -> u64 {
         self.magnitude.as_u64() * self.num
+    }
+    pub fn as_usize(&self) -> usize {
+        self.magnitude.as_usize() * (self.num as usize)
     }
 }
 
