@@ -37,7 +37,7 @@ pub fn stitch_files(files: Vec<PathBuf>, offsets: Vec<ByteOffset>, output: Strin
     Ok(())
 }
 
-fn read_file(name: &Path) -> Result<BytesMut> {
+pub fn read_file(name: &Path) -> Result<BytesMut> {
 
     let mut file = OpenOptions::new()
         .read(true)
@@ -69,7 +69,7 @@ fn stitch(mut bytes: BytesMut, new: BytesMut, offset: &usize, fill_pattern: &Fil
     }
 }
 
-fn write_file(path: &Path, bytes: BytesMut) -> Result<()> {
+pub fn write_file(path: &Path, bytes: BytesMut) -> Result<()> {
     
     let mut file = OpenOptions::new()
         .write(true)

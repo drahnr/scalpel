@@ -38,4 +38,7 @@ pub enum ScalpelError {
 
     #[fail(display = "Failed to stitch due to overlapping")]
     OverlapError,
+
+    #[fail(display = "Failed replace a section")]
+    GraftError,
 }
