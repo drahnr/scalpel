@@ -69,7 +69,7 @@ fn stitch(mut bytes: BytesMut, new: BytesMut, offset: &usize, fill_pattern: &Fil
     }
 }
 
-pub fn write_file(path: &Path, bytes: BytesMut) -> Result<()> {
+fn write_file(path: &Path, bytes: BytesMut) -> Result<()> {
     
     let mut file = OpenOptions::new()
         .write(true)
