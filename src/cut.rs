@@ -52,8 +52,6 @@ pub fn cut_out_bytes(
 mod test {
     extern crate rand;
     use super::*;
-    use self::rand::Rng;
-    use std::iter;
 
     #[test]
     fn test_cut_out() {

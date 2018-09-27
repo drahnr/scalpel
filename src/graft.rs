@@ -22,18 +22,15 @@ pub fn graft_file(graft_path: PathBuf, input: PathBuf, output: String, start: u6
 fn graft(graft: BytesMut, mut output: BytesMut, start: usize, size: usize, fill_pattern: FillPattern) -> Result<BytesMut> {
 
     if graft.len() > size {
-        return Err(ScalpelError::OverlapError.context(format!("Size {} of file larger than size {} of replacement section", graft.len(),size)).into());
+        return Err(ScalpelError::GraftError.context(format!("Size {} of file larger than size {} of replacement section", graft.len(),size)).into());
     } 
     // split file in part before and after start index
     let after = output.split_off(start);
 
     let length = output.len();
-    println!("Len after: {}", &after.len());
-    println!("Len output after: {}", &output.len());
 
     // append the replacement bytes
     output.extend_from_slice(&graft);
-    println!("len after graft {}", &output.len());
 
     // fill missing bytes
     match fill_pattern {
@@ -46,10 +43,8 @@ fn graft(graft: BytesMut, mut output: BytesMut, start: usize, size: usize, fill_
         },
     }
 
-    println!("len after filling {}", &output.len());
     // append the end
     output.extend_from_slice(&after[size..]);
-    println!("len final {}", &output.len());
 
     Ok(output)
 }
@@ -72,8 +67,7 @@ fn write_file(path: &Path, bytes: BytesMut) -> Result<()> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::fs::OpenOptions;
-    use std::io::{Write, Read};
+    use std::io::{Read};
 
     #[test]
     fn graft_a_bit() {
