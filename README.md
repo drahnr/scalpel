@@ -24,6 +24,14 @@ This is mostly used for the case where parts of the binary need to be extracted 
     scalpel stitch --binary tmp/test_bytes --offset 2058 --binary tmp/test_bytes --offset 10 --fill-pattern random --output stitched.bin
     ```
 
+* replace a section with a new file
+
+    ```bash
+    scalpel graft --start 1Ki --end 2Ki --graft tmp/test_cut_out --output cutted tmp/test_bytes
+    scalpel graft --end 2Ki --graft tmp/test_cut_out --output cutted tmp/test_bytes
+    scalpel graft --start 1Ki --size 1Ki --graft tmp/test_cut_out --output cutted tmp/test_bytes
+    ```
+
 * [alpha] sign firmware for authenticity
 
     ```bash
@@ -37,7 +45,7 @@ This is mostly used for the case where parts of the binary need to be extracted 
 * [x] cut off a binary at specific start and end/size
 * [x] Add signature verification and appendix features (using preferably [ring] and [webpki] or as an alternative [sodiumoxide] (linking it statically))
 * [ ] Handle endianness of checksums properly
-* [ ] Replace parts (i.e. cert files or non volatile memory and/or sections) (with resigning if necessary)
+* [x] Replace parts (i.e. cert files or non volatile memory and/or sections) (with resigning if necessary)
 * [ ] Allow hexadecimal input
 * [x] Allow multipile input scales (K = 1000, Ki = 1024, M = 1e6, Mi = 1024*1024, ...)
 * [ ] Add verifier option for alignment to given sector/page size
