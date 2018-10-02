@@ -40,5 +40,5 @@ pub enum ScalpelError {
     OverlapError,
 
     #[fail(display = "Failed replace a section")]
-    GraftError,
+    ReplaceError,
 }

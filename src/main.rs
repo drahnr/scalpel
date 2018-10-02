@@ -29,7 +29,7 @@ mod cut;
 mod errors;
 mod byte_offset;
 mod stitch;
-mod graft;
+mod replace;
 use errors::*;
 use byte_offset::*;
 
@@ -42,8 +42,8 @@ Usage:
   scalpel sign <keyfile> [--output=<output>] [--format=<format>] <file>
   scalpel sign <keyfile> <files>...
   scalpel stitch (--binary=<binary> --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>]
-  scalpel graft [--start=<start>] --end=<end> --graft=<graft> --output=<output> <input> [--fill-pattern=<fill_pattern>]
-  scalpel graft [--start=<start>] --size=<size> --graft=<graft> --output=<output> <input> [--fill-pattern=<fill_pattern>]
+  scalpel replace [--start=<start>] --end=<end> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>]
+  scalpel replace [--start=<start>] --size=<size> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>]
   scalpel (-h | --help)
   scalpel (-v |--version)
 
@@ -51,7 +51,7 @@ Commands:
   cut       extract bytes from a binary file
   sign      sign binary with a keypair such as ED25519 or RSA
   stitch    stitchs binaries together, each file starts at <offset> with random padding
-  graft     replace a section with <graft> specfied by start and end/size
+  replace     replace a section with <replace> specfied by start and end/size
 
 Options:
   -h --help                     Show this screen.
@@ -62,7 +62,7 @@ Options:
   --fragment=<fragment>         Define the size of the fragment/chunk to read/write at once. [Default: 8192]
   --format=<format>             Specify the key format, eihter pkcs8, pem, bytes or new
   --fill-pattern=<fill_patern>  Specify padding style for stitching (random|one|zero)
-  --graft=<graft>               file which replaces the original part
+  --replace=<replace>               file which replaces the original part
 ";
 
 #[derive(Debug, Deserialize)]
@@ -70,7 +70,7 @@ struct Args {
     cmd_cut: bool,
     cmd_sign: bool,
     cmd_stitch: bool,
-    cmd_graft: bool,
+    cmd_replace: bool,
     flag_start: Option<ByteOffset>,
     flag_end: Option<ByteOffset>,
     flag_size: Option<ByteOffset>,
@@ -84,7 +84,7 @@ struct Args {
     flag_offset: Vec<ByteOffset>,
     flag_fill_pattern: Option<stitch::FillPattern>,
     flag_format: Option<String>,
-    flag_graft: PathBuf,
+    flag_replace: PathBuf,
     flag_version: bool,
     flag_help: bool,
 }
@@ -204,7 +204,7 @@ fn run() -> Result<()> {
         stitch::stitch_files(args.flag_binary, args.flag_offset, args.flag_output.unwrap(), args.flag_fill_pattern.unwrap_or_default() )?;
 
         Ok(())
-    } else if args.cmd_graft {
+    } else if args.cmd_replace {
         // do input handling
         let start = args.flag_start.unwrap_or(Default::default()).as_u64(); // if none, set to 0
         let size: u64 = if let Some(end) = args.flag_end {
@@ -232,7 +232,7 @@ fn run() -> Result<()> {
                 .into());
         };
 
-        graft::graft_file(args.flag_graft, args.arg_input, args.flag_output.unwrap(), start, size, args.flag_fill_pattern.unwrap_or_default())?;
+        replace::replace_file(args.flag_replace, args.arg_input, args.flag_output.unwrap(), start, size, args.flag_fill_pattern.unwrap_or_default())?;
 
         Ok(())
     } else {

@@ -27,9 +27,9 @@ This is mostly used for the case where parts of the binary need to be extracted 
 * replace a section with a new file
 
     ```bash
-    scalpel graft --start 1Ki --end 2Ki --graft tmp/test_cut_out --output cutted tmp/test_bytes
-    scalpel graft --end 2Ki --graft tmp/test_cut_out --output cutted tmp/test_bytes
-    scalpel graft --start 1Ki --size 1Ki --graft tmp/test_cut_out --output cutted tmp/test_bytes
+    scalpel replace --start 1Ki --end 2Ki --replace tmp/test_cut_out --output cut tmp/test_bytes
+    scalpel replace --end 2Ki --replace tmp/test_cut_out --output cut tmp/test_bytes
+    scalpel replace --start 1Ki --size 1Ki --replace tmp/test_cut_out --output cut tmp/test_bytes
     ```
 
 * [alpha] sign firmware for authenticity

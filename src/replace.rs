@@ -6,12 +6,12 @@ use rand::{Rng};
 use std::fs::OpenOptions;
 use std::io::Write;
 
-pub fn graft_file(graft_path: PathBuf, input: PathBuf, output: String, start: u64, size: u64, fill_pattern: FillPattern) -> Result<()> {
+pub fn replace_file(replace_path: PathBuf, input: PathBuf, output: String, start: u64, size: u64, fill_pattern: FillPattern) -> Result<()> {
 
     let content = ::stitch::read_file(input.as_ref())?;
-    let graft_bytes = ::stitch::read_file(graft_path.as_ref())?;
+    let replace_bytes = ::stitch::read_file(replace_path.as_ref())?;
 
-    let replaced = graft(graft_bytes, content, start as usize, size as usize, fill_pattern)?;
+    let replaced = replace(replace_bytes, content, start as usize, size as usize, fill_pattern)?;
 
     write_file(Path::new(&output), replaced)?;
     
@@ -19,10 +19,10 @@ pub fn graft_file(graft_path: PathBuf, input: PathBuf, output: String, start: u6
 }
 
 
-fn graft(graft: BytesMut, mut output: BytesMut, start: usize, size: usize, fill_pattern: FillPattern) -> Result<BytesMut> {
+fn replace(replace: BytesMut, mut output: BytesMut, start: usize, size: usize, fill_pattern: FillPattern) -> Result<BytesMut> {
 
-    if graft.len() > size {
-        return Err(ScalpelError::GraftError.context(format!("Size {} of file larger than size {} of replacement section", graft.len(),size)).into());
+    if replace.len() > size {
+        return Err(ScalpelError::ReplaceError.context(format!("Size {} of file larger than size {} of replacement section", replace.len(),size)).into());
     } 
     // split file in part before and after start index
     let after = output.split_off(start);
@@ -30,14 +30,14 @@ fn graft(graft: BytesMut, mut output: BytesMut, start: usize, size: usize, fill_
     let length = output.len();
 
     // append the replacement bytes
-    output.extend_from_slice(&graft);
+    output.extend_from_slice(&replace);
 
     // fill missing bytes
     match fill_pattern {
         FillPattern::Zero => output.resize(length+size, 0x0),
         FillPattern::One => output.resize(length+size, 0xFF),
         FillPattern::Random => {
-            let mut padding = vec![0; size-graft.len()];
+            let mut padding = vec![0; size-replace.len()];
             ::rand::thread_rng().try_fill(&mut padding[..])?;
             output.extend_from_slice(&padding);
         },
@@ -70,21 +70,21 @@ mod test {
     use std::io::{Read};
 
     #[test]
-    fn graft_a_bit() {
+    fn replace_a_bit() {
         let input =  PathBuf::from("tmp/test_bytes");
-        let grafting = PathBuf::from("tmp/signme.bin");
+        let replacing = PathBuf::from("tmp/signme.bin");
 
-        graft_file(grafting, input, "tmp/grafted".to_string(), 0, 630, FillPattern::One)
-            .expect("Failed to graft file");
+        replace_file(replacing, input, "tmp/replaced".to_string(), 0, 630, FillPattern::One)
+            .expect("Failed to replace file");
 
         let buf = {
             let mut file = OpenOptions::new()
                 .read(true)
-                .open("tmp/grafted")
-                .map_err(|err| ScalpelError::OpeningError.context(err)).expect("Failed to open grafted file");
+                .open("tmp/replaced")
+                .map_err(|err| ScalpelError::OpeningError.context(err)).expect("Failed to open replaced file");
 
             let mut buf = Vec::new();
-            file.read_to_end(&mut buf).expect("Failed to read grafted file");
+            file.read_to_end(&mut buf).expect("Failed to read replaced file");
             buf
         };
 
