@@ -41,4 +41,7 @@ pub enum ScalpelError {
 
     #[fail(display = "Failed replace a section")]
     ReplaceError,
+
+    #[fail(display = "Failed to convert hex record to binary")]
+    HexError,
 }
