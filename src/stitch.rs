@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use errors::*;
 use rand::{Rng};
 use byte_offset::*;
+use std::ffi::OsStr;
 
 #[derive(Deserialize, Debug)]
 pub enum FillPattern { Random, Zero, One}
@@ -15,6 +16,9 @@ impl Default for FillPattern {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub enum FileFormat { Bin, Hex, Elf, NoEnd }
+
 pub fn stitch_files(files: Vec<PathBuf>, offsets: Vec<ByteOffset>, output: String, fill_pattern: FillPattern) -> Result<()> {
     
     let offsets: Vec<usize> = offsets.iter().map(|ele| ele.as_usize()).collect();
@@ -23,6 +27,7 @@ pub fn stitch_files(files: Vec<PathBuf>, offsets: Vec<ByteOffset>, output: Strin
 
     let stitched: Result<BytesMut>
      = files.iter().zip(offsets.iter()).try_fold(BytesMut::new(), |stitched, (elem, offset)| {
+        // before reading, check file ending
         let content = read_file(elem.as_ref())
             .map_err(|e| {
                 return ScalpelError::OpeningError.context(e)
@@ -97,6 +102,20 @@ where T: Clone,
     Ok((sorted_vec, offset_sorted))
 }
 
+fn check_file_format(name: &Path) -> Result<FileFormat> {
+    let ext = match name.extension() {
+        Some(e) => e.to_str().unwrap(),
+        None => return Err(ScalpelError::UnknownFileFormat.context(format!("No extension found") ).into()),
+    };
+
+    match ext {
+        "hex" => Ok(FileFormat::Hex),
+        "bin" => Ok(FileFormat::Bin),
+        "elf" => Ok(FileFormat::Elf),
+        _ => Err(ScalpelError::UnknownFileFormat.context(format!("unimplemented extension {:?}", ext)).into()),
+    }
+
+}
 
 #[cfg(test)]
 mod test {
@@ -119,6 +138,30 @@ mod test {
             buf
         };
         assert_eq!(buf.len(), 4096);
+    }
+
+    #[test]
+    fn test_ext_hex() {
+        let name = PathBuf::from("tmp/test.hex");
+        let ext = check_file_format(name.as_ref()).expect("Failed to check file format");
+
+        assert_eq!(ext, FileFormat::Hex);
+    }
+
+    #[test]
+    fn test_ext_bin() {
+        let name = PathBuf::from("tmp/signme.bin");
+        let ext = check_file_format(name.as_ref()).expect("Failed to check file format");
+
+        assert_eq!(ext, FileFormat::Bin);
+    }
+
+    #[test]
+    fn test_no_ext() {
+        let name = PathBuf::from("tmp/test_bytes");
+        let ext = check_file_format(name.as_ref());
+
+        assert!(ext.is_err());
     }
 
 

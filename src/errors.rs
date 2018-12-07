@@ -44,4 +44,7 @@ pub enum ScalpelError {
 
     #[fail(display = "Failed to convert hex record to binary")]
     HexError,
+
+    #[fail(display = "Unknown file extension")]
+    UnknownFileFormat,
 }

@@ -65,7 +65,7 @@ Options:
   --fragment=<fragment>         Define the size of the fragment/chunk to read/write at once. [Default: 8192]
   --format=<format>             Specify the key format, eihter pkcs8, pem, bytes or new
   --fill-pattern=<fill_patern>  Specify padding style for stitching (random|one|zero)
-  --replace=<replace>               file which replaces the original part
+  --replace=<replace>           File which replaces the original part
 ";
 
 #[derive(Debug, Deserialize)]
