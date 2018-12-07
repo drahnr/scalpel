@@ -53,8 +53,8 @@ Usage:
 Commands:
   cut       extract bytes from a binary file
   sign      sign binary with a keypair such as ED25519 or RSA
-  stitch    stitchs binaries together, each file starts at <offset> with random padding
-  replace     replace a section with <replace> specfied by start and end/size
+  stitch    stitchs binaries together, each file starts at <offset> with (random|one|zero) padding, accepted file formats: binary, IntelHex
+  replace   replace a section with <replace> specfied by start and end/size
 
 Options:
   -h --help                     Show this screen.

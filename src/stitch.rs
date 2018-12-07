@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use errors::*;
 use rand::{Rng};
 use byte_offset::*;
-use std::ffi::OsStr;
+use super::hex_convert::convert_hex2bin;
 
 #[derive(Deserialize, Debug)]
 pub enum FillPattern { Random, Zero, One}
@@ -28,12 +28,14 @@ pub fn stitch_files(files: Vec<PathBuf>, offsets: Vec<ByteOffset>, output: Strin
     let stitched: Result<BytesMut>
      = files.iter().zip(offsets.iter()).try_fold(BytesMut::new(), |stitched, (elem, offset)| {
         // before reading, check file ending
-        let content = read_file(elem.as_ref())
-            .map_err(|e| {
-                return ScalpelError::OpeningError.context(e)
-            })?;
+        let content = match check_file_format(elem.as_ref())? {
+            FileFormat::Bin | FileFormat::NoEnd => read_file(elem.as_ref()),
+            FileFormat::Hex => convert_hex2bin(elem.as_ref()),
+            _ => Err(ScalpelError::UnknownFileFormat.context(format!("unimplemented extension {:?}", elem)).into()),
+            
+        };
         
-        Ok(stitch(stitched, content, offset, &fill_pattern).map_err(|e| ScalpelError::OverlapError.context(format!("Failed to stitch {:?}: {}", elem, e)))?)
+        Ok(stitch(stitched, content?, offset, &fill_pattern).map_err(|e| ScalpelError::OverlapError.context(format!("Failed to stitch {:?}: {}", elem, e)))?)
         
     });
 
@@ -105,7 +107,7 @@ where T: Clone,
 fn check_file_format(name: &Path) -> Result<FileFormat> {
     let ext = match name.extension() {
         Some(e) => e.to_str().unwrap(),
-        None => return Err(ScalpelError::UnknownFileFormat.context(format!("No extension found") ).into()),
+        None => return Ok(FileFormat::NoEnd), // a bit risky to map all None to NoEnd, could also be a dir
     };
 
     match ext {
@@ -159,9 +161,9 @@ mod test {
     #[test]
     fn test_no_ext() {
         let name = PathBuf::from("tmp/test_bytes");
-        let ext = check_file_format(name.as_ref());
+        let ext = check_file_format(name.as_ref()).expect("Failed to check file format");
 
-        assert!(ext.is_err());
+        assert_eq!(ext, FileFormat::NoEnd);
     }
 
 

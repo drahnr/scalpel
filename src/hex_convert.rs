@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 
 use super::stitch::{stitch, FillPattern};
 
-pub fn convert_hex2bin(file_name: PathBuf) -> Result<BytesMut> {
+pub fn convert_hex2bin(file_name: &Path) -> Result<BytesMut> {
     let content = read_hex2string(file_name.as_ref())?;
 
     let mut ihex_reader = Reader::new_stopping_after_error_and_eof(content.as_str(), false, true);
@@ -80,7 +80,7 @@ mod test {
     fn test_hex_convert() {
         let file = PathBuf::from("tmp/test.hex");
 
-        let res = convert_hex2bin(file);
+        let res = convert_hex2bin(&file);
 
         println!("{:?}", res);
 
