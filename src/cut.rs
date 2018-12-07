@@ -10,18 +10,25 @@ pub fn cut_out_bytes(
     size: u64,
     fragment_size: usize,
 ) -> Result<()> {
-    
     let mut f_in = OpenOptions::new()
         .read(true)
         .open(victim.as_str())
-        .map_err(|err| ScalpelError::OpeningError.context(err).context(format!("Failed to open {} in R mode", victim)))?;
+        .map_err(|err| {
+            ScalpelError::OpeningError
+                .context(err)
+                .context(format!("Failed to open {} in R mode", victim))
+        })?;
 
     let mut f_out = OpenOptions::new()
         .write(true)
         .truncate(true)
         .create(true)
         .open(output.as_str())
-        .map_err(|err| ScalpelError::OpeningError.context(err).context(format!("Failed to open {} in W mode", output)))?;
+        .map_err(|err| {
+            ScalpelError::OpeningError
+                .context(err)
+                .context(format!("Failed to open {} in W mode", output))
+        })?;
 
     f_in.seek(SeekFrom::Start(start))
         .map_err(|err| ScalpelError::SeekError.context(err))?;
@@ -46,7 +53,6 @@ pub fn cut_out_bytes(
         }
     }
 }
-
 
 #[cfg(test)]
 mod test {

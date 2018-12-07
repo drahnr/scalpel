@@ -23,7 +23,7 @@ pub enum ScalpelError {
 
     #[fail(display = "Failed to parse Keys from .pk8")]
     ParsePk8Error,
-    
+
     #[fail(display = "There is no key in this Signer yet")]
     KeyInitError,
 
@@ -34,7 +34,7 @@ pub enum ScalpelError {
     ArgumentError,
 
     #[fail(display = "Parsing Yada failed: {}", r)]
-    ParsingError {r: String},
+    ParsingError { r: String },
 
     #[fail(display = "Failed to stitch due to overlapping")]
     OverlapError,

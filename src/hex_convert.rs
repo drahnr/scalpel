@@ -5,7 +5,7 @@ use ihex::record::*;
 
 use std::fs::OpenOptions;
 use std::io::Read;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use super::stitch::{stitch, FillPattern};
 
@@ -15,28 +15,26 @@ pub fn convert_hex2bin(file_name: &Path) -> Result<BytesMut> {
     let mut ihex_reader = Reader::new_stopping_after_error_and_eof(content.as_str(), false, true);
 
     // use iterator
-    ihex_reader.try_fold(BytesMut::new(), |bin, record| {
-        hex_record2bin(record?, bin)
-    })
-
+    ihex_reader.try_fold(BytesMut::new(), |bin, record| hex_record2bin(record?, bin))
 }
 
 fn hex_record2bin(record: Record, binary: BytesMut) -> Result<BytesMut> {
-
     let bin = match record {
-        Record::Data { value, offset } => {
-            stitch(binary, BytesMut::from(value), &(offset as usize), &FillPattern::Zero)?
-        },
+        Record::Data { value, offset } => stitch(
+            binary,
+            BytesMut::from(value),
+            &(offset as usize),
+            &FillPattern::Zero,
+        )?,
         Record::EndOfFile => binary,
         _ => {
             return Err(ScalpelError::HexError
-                .context(format!("Unknown Record Type {:?}", record ))
+                .context(format!("Unknown Record Type {:?}", record))
                 .into())
         }
     };
 
     Ok(bin)
-
 }
 
 fn read_hex2string(name: &Path) -> Result<String> {
@@ -54,6 +52,7 @@ fn read_hex2string(name: &Path) -> Result<String> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::path::PathBuf;
 
     #[test]
     fn test_read_string() {
@@ -90,7 +89,7 @@ mod test {
     #[test]
     fn test_eof_record() {
         let record = Record::EndOfFile;
-        let buf = BytesMut::from(vec!(0,0));
+        let buf = BytesMut::from(vec![0, 0]);
         let res = hex_record2bin(record, buf.clone());
 
         assert_eq!(buf, res.unwrap());
@@ -99,7 +98,7 @@ mod test {
     #[test]
     fn test_bad_record() {
         let record = Record::ExtendedLinearAddress(8);
-        let buf = BytesMut::from(vec!(0,0));
+        let buf = BytesMut::from(vec![0, 0]);
         let res = hex_record2bin(record, buf.clone());
 
         // is there a way to test for a specific error?
