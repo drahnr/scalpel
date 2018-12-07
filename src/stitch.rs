@@ -50,7 +50,7 @@ pub fn read_file(name: &Path) -> Result<BytesMut> {
     Ok(BytesMut::from(buf))
 }
 
-fn stitch(mut bytes: BytesMut, new: BytesMut, offset: &usize, fill_pattern: &FillPattern) -> Result<BytesMut> {
+pub fn stitch(mut bytes: BytesMut, new: BytesMut, offset: &usize, fill_pattern: &FillPattern) -> Result<BytesMut> {
     if bytes.len() > *offset {
         return Err(ScalpelError::OverlapError.context(format!("Offset {} is smaller than length {} of previous binaries", offset, bytes.len())).into());
     } else {

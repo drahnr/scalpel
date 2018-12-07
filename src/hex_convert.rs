@@ -1,23 +1,45 @@
 use bytes::BytesMut;
 use errors::*;
 use ihex::reader::Reader;
+use ihex::record::*;
+
 use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-pub fn convert_hex_to_bin(file_name: PathBuf) -> Result<()> {
-    let content = read_hex_to_string(file_name.as_ref())?;
+use super::stitch::{stitch, FillPattern};
 
-    let ihex_reader = Reader::new_stopping_after_error_and_eof(content.as_str(), false, true);
+pub fn convert_hex2bin(file_name: PathBuf) -> Result<BytesMut> {
+    let content = read_hex2string(file_name.as_ref())?;
 
-    for record in ihex_reader {
-        println!("{:?}", record);
-    }
+    let mut ihex_reader = Reader::new_stopping_after_error_and_eof(content.as_str(), false, true);
 
-    Ok(())
+    // use iterator
+    ihex_reader.try_fold(BytesMut::new(), |bin, record| {
+        hex_record2bin(record?, bin)
+    })
+
 }
 
-fn read_hex_to_string(name: &Path) -> Result<String> {
+fn hex_record2bin(record: Record, binary: BytesMut) -> Result<BytesMut> {
+
+    let bin = match record {
+        Record::Data { value, offset } => {
+            stitch(binary, BytesMut::from(value), &(offset as usize), &FillPattern::Zero)?
+        },
+        Record::EndOfFile => binary,
+        _ => {
+            return Err(ScalpelError::HexError
+                .context(format!("Unknown Record Type {:?}", record ))
+                .into())
+        }
+    };
+
+    Ok(bin)
+
+}
+
+fn read_hex2string(name: &Path) -> Result<String> {
     let mut file = OpenOptions::new()
         .read(true)
         .open(name)
@@ -36,7 +58,7 @@ mod test {
     #[test]
     fn test_read_string() {
         let file = PathBuf::from("Cargo.toml");
-        let mut string = read_hex_to_string(file.as_ref()).expect("Failed to read file");
+        let mut string = read_hex2string(file.as_ref()).expect("Failed to read file");
 
         string.truncate(9);
 
@@ -47,7 +69,7 @@ mod test {
     fn test_read_string_err() {
         let file = PathBuf::from("NonExisitingFileName");
 
-        let res = read_hex_to_string(file.as_ref());
+        let res = read_hex2string(file.as_ref());
 
         // is there a way to test for a specific error?
         // something with assert_eq!( res, ScalpelError::OpeneningError)
@@ -58,10 +80,31 @@ mod test {
     fn test_hex_convert() {
         let file = PathBuf::from("tmp/test.hex");
 
-        let res = convert_hex_to_bin(file);
+        let res = convert_hex2bin(file);
 
+        println!("{:?}", res);
+
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_eof_record() {
+        let record = Record::EndOfFile;
+        let buf = BytesMut::from(vec!(0,0));
+        let res = hex_record2bin(record, buf.clone());
+
+        assert_eq!(buf, res.unwrap());
+    }
+
+    #[test]
+    fn test_bad_record() {
+        let record = Record::ExtendedLinearAddress(8);
+        let buf = BytesMut::from(vec!(0,0));
+        let res = hex_record2bin(record, buf.clone());
+
+        // is there a way to test for a specific error?
+        // something with assert_eq!( res, ScalpelError::HexError)
         assert!(res.is_err());
-
     }
 
 }
