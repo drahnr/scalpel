@@ -16,25 +16,25 @@ extern crate serde;
 extern crate common_failures;
 #[macro_use]
 extern crate failure;
-extern crate rand;
 extern crate ihex;
+extern crate rand;
 
 use docopt::Docopt;
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
 mod signer;
 use signer::*;
 
+mod byte_offset;
 mod concat;
 mod cut;
 mod errors;
-mod byte_offset;
-mod stitch;
-mod replace;
 mod hex_convert;
+mod replace;
+mod stitch;
 
-use errors::*;
 use byte_offset::*;
+use errors::*;
 
 const USAGE: &'static str = "
 scalpel
@@ -129,7 +129,7 @@ fn run() -> Result<()> {
                     .into())
             }
         };
-        
+
         if args.arg_files.len() > 0 {
             for item in args.arg_files.iter() {
                 // get signature
@@ -190,21 +190,27 @@ fn run() -> Result<()> {
                 .into());
         };
         let fragment_size = args.flag_fragment.unwrap_or(Default::default()).as_u64(); // CHUNK 8192 from cut
-        
+
         cut::cut_out_bytes(
             args.arg_file,
             args.flag_output.unwrap(),
             start,
             size,
             fragment_size as usize,
-        ).and_then(|_| {
+        )
+        .and_then(|_| {
             info!("Cutting success");
             Ok(())
         })
     } else if args.cmd_stitch {
         // command stitch binaries together
-        
-        stitch::stitch_files(args.flag_binary, args.flag_offset, args.flag_output.unwrap(), args.flag_fill_pattern.unwrap_or_default() )?;
+
+        stitch::stitch_files(
+            args.flag_binary,
+            args.flag_offset,
+            args.flag_output.unwrap(),
+            args.flag_fill_pattern.unwrap_or_default(),
+        )?;
 
         Ok(())
     } else if args.cmd_replace {
@@ -235,7 +241,14 @@ fn run() -> Result<()> {
                 .into());
         };
 
-        replace::replace_file(args.flag_replace, args.arg_input, args.flag_output.unwrap(), start, size, args.flag_fill_pattern.unwrap_or_default())?;
+        replace::replace_file(
+            args.flag_replace,
+            args.arg_input,
+            args.flag_output.unwrap(),
+            start,
+            size,
+            args.flag_fill_pattern.unwrap_or_default(),
+        )?;
 
         Ok(())
     } else {

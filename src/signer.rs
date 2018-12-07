@@ -1,14 +1,14 @@
 use bytes::Bytes;
 use untrusted;
 
-use std::fmt::Debug;
-use ring;
-use ring::{rand, signature};
-use std::path::Path;
-use std::io::Read;
-use std::fs::OpenOptions;
 use errors::*;
 use failure::Fail;
+use ring;
+use ring::{rand, signature};
+use std::fmt::Debug;
+use std::fs::OpenOptions;
+use std::io::Read;
+use std::path::Path;
 
 pub struct Signer {
     pub keypair: Option<signature::Ed25519KeyPair>,
@@ -36,7 +36,7 @@ impl Signer {
     }
 
     /// Create signer based on in memory pkcs8 key
-    /// 
+    ///
     /// Expects raw bytes without encoding
     pub fn from_pkcs8(pkcs8: &Vec<u8>) -> Result<Signer> {
         // get keypair
@@ -49,7 +49,7 @@ impl Signer {
     }
 
     /// create signer with key from pkcs8 file
-    /// 
+    ///
     /// Expects raw bytes without encoding
     pub fn from_pkcs8_file(pkcs8_file_path: &Path) -> Result<Signer> {
         // open file
@@ -59,16 +59,14 @@ impl Signer {
             .map_err(|err| ScalpelError::OpeningError.context(err))?;
 
         let mut content = Vec::new();
-        pkcs8_file.read_to_end(&mut content)
+        pkcs8_file
+            .read_to_end(&mut content)
             .map_err(|err| ScalpelError::ReadingError.context(err))?;
         Self::from_pkcs8(&content)
     }
 
     /// get signature for bytes
-    pub fn calculate_signature(
-        &self,
-        file: &Bytes,
-    ) -> Result<ring::signature::Signature> {
+    pub fn calculate_signature(&self, file: &Bytes) -> Result<ring::signature::Signature> {
         if let Some(ref keypair) = self.keypair {
             Ok(keypair.sign(&file))
         } else {
@@ -77,7 +75,6 @@ impl Signer {
                 .into())
         }
     }
-
 
     /// get signature of file
     pub fn calculate_signature_of_file<P>(&self, path: P) -> Result<ring::signature::Signature>
@@ -90,7 +87,11 @@ impl Signer {
             .write(true)
             .read(true)
             .open(path)
-            .map_err(|err| ScalpelError::OpeningError.context(err).context(format!("Failed to open {:?}", path )))?;
+            .map_err(|err| {
+                ScalpelError::OpeningError
+                    .context(err)
+                    .context(format!("Failed to open {:?}", path))
+            })?;
 
         let mut content = Vec::<u8>::new();
         file.read_to_end(&mut content)
@@ -101,7 +102,6 @@ impl Signer {
 
         Ok(signature)
     }
-
 
     /// verify bytes with provided signature bytes
     pub fn verify<B, C>(&self, bytes_data: B, bytes_signature: C) -> Result<()>
@@ -164,9 +164,8 @@ mod test {
 
     #[test]
     fn test_keys_pk8() {
-        let signer =
-            Signer::from_pkcs8_file(Path::new("./tmp/ed25519_keypair.pk8"))
-                .expect("Failed to read pk8 keys from file");
+        let signer = Signer::from_pkcs8_file(Path::new("./tmp/ed25519_keypair.pk8"))
+            .expect("Failed to read pk8 keys from file");
 
         let signature = signer
             .calculate_signature_of_file("./tmp/signme.bin")
@@ -175,10 +174,8 @@ mod test {
         append_signature(Path::new("./tmp/signme.bin"), &signature)
             .expect("Failed to append signature");
 
-        assert!(
-            signer
-                .verify_file(Path::new("./tmp/signme-signed.bin"))
-                .is_ok()
-        );
+        assert!(signer
+            .verify_file(Path::new("./tmp/signme-signed.bin"))
+            .is_ok());
     }
 }

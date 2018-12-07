@@ -1,15 +1,16 @@
+use bytes::Bytes;
 use ring::signature;
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::path::Path;
-use bytes::Bytes;
 
 use errors::*;
 
 /// open output file, add "-signed" to name
 pub fn derive_output_filename(path: &Path) -> Result<String> {
     // get file
-    let filename = path.to_str()
+    let filename = path
+        .to_str()
         .ok_or::<Error>(ScalpelError::PathError.into())?;
 
     let file_split: Vec<&str> = filename.rsplitn(2, '.').collect();
@@ -61,11 +62,11 @@ pub fn append_signature(path: &Path, sig: &signature::Signature) -> Result<()> {
 #[cfg(test)]
 mod test {
     extern crate rand;
-    use super::*;
     use self::rand::Rng;
-    use std::iter;
+    use super::*;
     use signer::*;
     use std::io::{Seek, SeekFrom};
+    use std::iter;
 
     #[test]
     fn test_append_signature() {
@@ -77,7 +78,8 @@ mod test {
             .take(1000)
             .map(|_| rng.gen_range(1, 255))
             .collect::<Bytes>();
-        let signature = signer.calculate_signature(&byte_victim)
+        let signature = signer
+            .calculate_signature(&byte_victim)
             .expect("Failed signature from bytes");
         let path_victim = Path::new("tmp/test_bytes");
         append_signature(&path_victim, &signature).expect("Appending signature failed.");
@@ -100,5 +102,4 @@ mod test {
         assert_eq!(ref_sig[..], read_sig[..]);
     }
 
-    
 }
