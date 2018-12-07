@@ -17,6 +17,7 @@ extern crate common_failures;
 #[macro_use]
 extern crate failure;
 extern crate rand;
+extern crate ihex;
 
 use docopt::Docopt;
 use std::path::{PathBuf, Path};
@@ -30,6 +31,8 @@ mod errors;
 mod byte_offset;
 mod stitch;
 mod replace;
+mod hex_convert;
+
 use errors::*;
 use byte_offset::*;
 

@@ -4,7 +4,7 @@ pub use failure::Fail;
 use std;
 pub type Result<X> = std::result::Result<X, Error>;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Fail, PartialEq)]
 pub enum ScalpelError {
     #[fail(display = "Failed to open.")]
     OpeningError,
