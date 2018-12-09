@@ -3,7 +3,7 @@ use byte_offset::*;
 use bytes::BytesMut;
 use errors::*;
 use rand::Rng;
-use std::fs::OpenOptions;
+use std::fs::{OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
@@ -215,6 +215,6 @@ mod test {
         let ext = check_file_format(name.as_ref()).expect("Failed to check file format");
 
         assert_eq!(ext, FileFormat::NoEnd);
-    }
+    }    
 
 }
