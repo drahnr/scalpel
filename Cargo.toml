@@ -1,11 +1,12 @@
 [package]
 name = "scalpel-bin"
-version = "0.2.2"
+version = "0.3.0-alpha"
 authors = ["Bernhard Schuster <bernhard@ahoi.io>", "Korbinian Maier <korbinian.maier@tum.de>"]
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 categories = ["development-tools", "command-line-utilities", "embedded"]
-repository = "https://github.com/nello-io/scalpel"
+keywords = ["binary", "modify", "hex", "merge", "tool"]
+repository = "https://github.com/drahnr/scalpel"
 description = "binary modification tool, cut, stitch, replace, sign"
 
 [dependencies]
