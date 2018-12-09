@@ -1,0 +1,253 @@
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: jtarchie/pr
+
+resources:
+- name: git-clone-resource
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/drahnr/scalpel.git
+
+- name: github-release
+  type: github-release
+  source:
+    owner: drahnr
+    access_token: ((sirmergealot-github-token))
+    repository:  scalpel
+
+- name: git-tag-resource
+  type: git
+  source:
+    tag_filter: "v[0-9]*"
+    branch: master
+    uri: https://github.com/drahnr/scalpel.git
+
+- name: git-pull-request-resource
+  type: pull-request
+  source:
+    repo: drahnr/scalpel
+    access_token: ((sirmergealot-github-token))
+
+
+#- name: env-musl
+#  type: docker-image
+#  source:
+#    repository: ekidd/rust-musl-builder
+#    max_concurrent_downloads: 2
+#    max_concurrent_uploads: 2
+
+- name: env-glibc
+  type: docker-image
+  source:
+    repository: rust
+    max_concurrent_downloads: 2
+    max_concurrent_uploads: 2
+
+#- name: gh-release
+#  type: github-release
+#  source:
+#    owner: drahnr
+#    repository: messagebird-async
+#    access_token: ((drahnr-github-token))
+
+jobs:
+  - name: pr-validate
+    build_logs_to_retain: 10
+    public: true
+    serial: true
+    plan:
+    - get: env-glibc
+#    - get: env-musl
+    - get: git-pull-request-resource
+      resource: git-pull-request-resource
+      trigger: true
+
+    - aggregate:
+      - task: validate-glibc
+        timeout: 15m
+        image: env-glibc
+        config:
+          platform: linux
+          inputs:
+          - name: git-pull-request-resource
+          run:
+            path: sh
+            args:
+            - -exc
+            - |
+              export CARGO_HOME="$(pwd)/../cargo"
+              rustc --version --verbose
+              cargo b
+              cargo t
+            dir: git-pull-request-resource
+          caches:
+          - path: cargo
+
+ #     - task: validate-musl
+ #       timeout: 15m
+ #       image: env-musl
+ #       config:
+ #         platform: linux
+ #         inputs:
+ #         - name: git-pull-request-resource
+ #         run:
+ #           user: root
+ #           path: sh
+ #           args:
+ #           - -exc
+ #           - |
+ #             export CARGO_HOME="$(pwd)/../cargo"
+ #             rustc --version --verbose
+ #             cargo b
+ #             cargo t
+ #           dir: git-pull-request-resource
+ #         caches:
+ #         - path: cargo
+
+      on_success:
+        put: git-pull-request-resource
+        params:
+          path: git-pull-request-resource
+          status: success
+
+      on_failure:
+        put: git-pull-request-resource
+        params:
+          path: git-pull-request-resource
+          status: failure
+
+  - name: master-validate
+    build_logs_to_retain: 10
+    public: true
+    serial: true
+    plan:
+  #  - get: env-musl
+    - get: env-glibc
+    - get: git-repo
+      resource: git-clone-resource
+      trigger: true
+
+    - aggregate:
+      - task: validate-glibc
+        timeout: 15m
+        image: env-glibc
+        config:
+          platform: linux
+          inputs:
+          - name: git-repo
+          run:
+            path: sh
+            args:
+            - -exc
+            - |
+              export CARGO_HOME="$(pwd)/../cargo"
+              rustc --version --verbose
+              cargo b
+              cargo t
+            dir: git-repo
+          caches:
+          - path: cargo
+
+#      - task: validate-musl
+#        timeout: 15m
+#        image: env-musl
+#        config:
+#          platform: linux
+#          inputs:
+#          - name: git-repo
+#          run:
+#            user: root
+#            path: sh
+#            args:
+#            - -exc
+#            - |
+#              export CARGO_HOME="$(pwd)/../cargo"
+#              rustc --version --verbose
+#              cargo b
+#              cargo t
+#            dir: git-repo
+#          caches:
+#          - path: cargo
+
+  - name: run
+    build_logs_to_retain: 5
+    public: false
+    serial: true
+    plan:
+    - get: env-glibc
+    - get: git-repo
+      resource: git-clone-resource
+      trigger: true
+      passed: [master-validate]
+
+    - task: with-credentials
+      timeout: 15m
+      image: env-glibc
+      config:
+        platform: linux
+        inputs:
+        - name: git-repo
+        run:
+          path: sh
+          args:
+          - -exc
+          - |
+            export CARGO_HOME="$(pwd)/../cargo"
+            export RUST_LOG=scalpel=debug
+            cargo run -- --help
+            # TODO add more examples
+          dir: git-repo
+        caches:
+        - path: cargo
+
+
+  - name: publish-github-release
+    build_logs_to_retain: 5
+    public: false
+    serial: true
+    plan:
+    - get: env-glibc
+    - get: git-repo
+      resource: git-tag-resource
+      trigger: true
+
+    - put: github-release
+      params:
+        name: release-name
+        tag: release-tag
+        globs:
+        - uploads/*
+
+    - task: create-github-release
+      timeout: 15m
+      image: env-glibc
+      config:
+        platform: linux
+        inputs:
+        - name: git-repo
+        outputs:
+        - name: github-release
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              # TODO cross compile to windows
+              # $ cargo build --release --target x86_64-pc-windows-gnu
+              # using the fedora provided precompiled static libs
+              # and publish target/x86_64-pc-windows-gnu/release/scalpel.exe
+              # TODO build for more OSes, such as fuchsia and BSD platforms
+              mkdir -p ../github-release/upload/
+              for TARGET in x86_64-unknown-linux-gnu ; do
+                cargo build --release --target ${TARGET} && \
+                cp target/${TARGET}/release/scalpel ../github-release/upload/scalpel-${TARGET}
+              done
+              cat .git/ref | tee ../github-release/release-version
+              # construct scalpel-v1.2.3
+              echo scalpel- > ../github-release/release-name
+              cat .git/ref | tee ../github-release/release-name
+
+          dir: git-repo

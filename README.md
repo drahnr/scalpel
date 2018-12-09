@@ -1,5 +1,8 @@
 # scalpel
 
+[![Build Status](https://ci.spearow.io/api/v1/teams/main/pipelines/scalpel/jobs/master-validate/badge)](https://ci.spearow.io/teams/main/pipelines/scalpel-bin) [![Crates.io](https://img.shields.io/crates/v/scalpel-bin.svg)](https://crates.io/crates/scalpel-bin) [![docs.rs](https://docs.rs/scalpel-bin/badge.svg)](https://docs.rs/scalpel-bin) [![License](https://img.shields.io/crates/l/scalpel-bin.svg)](#license)
+
+
 A scalpel and stitch tool for binaries. Maybe also a signing tool, maybe.
 
 ### Snip around, stich up and/or sign binaries
@@ -32,7 +35,7 @@ This is mostly used for the case where parts of the binary need to be extracted 
     scalpel replace --start 1Ki --size 1Ki --replace tmp/test_cut_out --output cut tmp/test_bytes
     ```
 
-* [alpha] sign firmware for authenticity
+* [alpha] sign firmware for authenticity with edcsa using the ed25519 curve
 
     ```bash
     scalpel sign tmp/ed25519_keypair.pk8 --format pkcs8 tmp/signme.bin
@@ -43,7 +46,7 @@ This is mostly used for the case where parts of the binary need to be extracted 
 #### Features
 
 * [x] cut off a binary at specific start and end/size
-* [x] Add signature verification and appendix features (using preferably [ring] and [webpki] or as an alternative [sodiumoxide] (linking it statically))
+* [x] Add signature verification and appendix features (using preferably [ring] and [webpki])
 * [ ] Handle endianness of checksums properly
 * [x] Replace parts (i.e. cert files or non volatile memory and/or sections) (with resigning if necessary)
 * [ ] Allow hexadecimal input
@@ -54,7 +57,7 @@ This is mostly used for the case where parts of the binary need to be extracted 
 
 * You need th extracted binary as include? Use `xxd -i sliced.bin > sliced_binary.h` to create a header file out of the result.
 
-* Convert RSA keys in .pem format to pkcs8 format via openssl (see `ring` doc [doc-ring] ), `openssl` supports Ed25519 algorithm currently only on `master` branch
+* Convert RSA keys in .pem format to pkcs8 format via openssl (see `ring` doc [doc-ring] ), `openssl` supports Ed25519 algorithm currently only on `master`
 
     ```bash
     openssl pkcs8 -toppk8 -nocrypt -outform der -in [key.pem] > [pkcs8_key.pk8]
