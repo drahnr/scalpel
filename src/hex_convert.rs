@@ -2,9 +2,9 @@ use bytes::BytesMut;
 use errors::*;
 use ihex::reader::Reader;
 use ihex::record::*;
-
+use ihex::writer;
+use std::io::{Read, Write};
 use std::fs::OpenOptions;
-use std::io::Read;
 use std::path::Path;
 
 use super::stitch::{stitch, FillPattern};
@@ -49,10 +49,41 @@ fn read_hex2string(name: &Path) -> Result<String> {
     Ok(buf)
 }
 
+
+fn write_hex_file(path: &Path, bytes: BytesMut) -> Result<()> {
+    
+    let vec_content = bytes.to_vec();
+    
+    let byte_count = 16;
+    let rec_count = vec_content.len()/byte_count;
+    let mut records: Vec<Record> = Vec::new();
+
+    for ind in 0..rec_count {
+        let data = &vec_content[ind*byte_count..(ind+1)*byte_count];
+        records.push(Record::Data { offset: 16*ind as u16, value: data.to_vec()});
+    }
+
+    let eof_rec = Record::EndOfFile;
+    records.push(eof_rec);
+
+    let ihex_obj = writer::create_object_file_representation(&records)?;
+    
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .open(path)
+        .map_err(|err| ScalpelError::OpeningError.context(format!("{}: {:?}", err, path)))?;
+
+    write!(file, "{}", ihex_obj)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
     use std::path::PathBuf;
+    use bytes::BufMut;
 
     #[test]
     fn test_read_string() {
@@ -104,6 +135,48 @@ mod test {
         // is there a way to test for a specific error?
         // something with assert_eq!( res, ScalpelError::HexError)
         assert!(res.is_err());
+    }
+
+    #[test]
+    fn test_write_hex() {
+        let name = PathBuf::from("tmp/test_write.hex");
+        let mut bytes = BytesMut::with_capacity(255);
+        
+        bytes.put_u64_le(1);
+        bytes.put_u64_le(2);
+        bytes.put_u64_le(3);
+        bytes.put_u64_le(4);
+        bytes.put_u64_le(5);
+        bytes.put_u64_le(6);
+        bytes.put_u64_le(7);
+        bytes.put_u64_le(8);
+        bytes.put_u64_le(9);
+        bytes.put_u64_le(10);
+        bytes.put_u64_le(11);
+        bytes.put_u64_le(254);
+
+        write_hex_file(name.as_ref(), bytes).expect("Failed to write bytes to hex file");
+
+        let mut hex_file = OpenOptions::new()
+                .read(true)
+                .open("tmp/test_write.hex")
+                .map_err(|err| ScalpelError::OpeningError.context(err))
+                .expect("Failed to open stitched file");
+
+        let mut content = String::new();
+        hex_file.read_to_string(&mut content).expect("Failed to read hex file");
+        println!("{}", content);
+        
+        let hex = ":1000000001000000000000000200000000000000ED
+:1000100003000000000000000400000000000000D9
+:1000200005000000000000000600000000000000C5
+:1000300007000000000000000800000000000000B1
+:1000400009000000000000000A000000000000009D
+:100050000B00000000000000FE0000000000000097
+:00000001FF";
+
+        // add a more sophisitcated test
+        assert_eq!(content, hex);
     }
 
 }
