@@ -244,6 +244,28 @@ mod test {
     }
 
     #[test]
+    fn try_stitch_elf() {
+        let files = vec![
+            PathBuf::from("tmp/test_bytes"),
+            PathBuf::from("tmp/test_bytes"),
+        ];
+
+        let offsets = vec![
+            ByteOffset::new(0, Magnitude::Unit),
+            ByteOffset::new(2, Magnitude::Ki),
+        ];
+        let res = super::stitch_files(
+            files,
+            offsets,
+            "stitched_test.hex".to_string(),
+            FillPattern::Zero,
+            FileFormat::Elf
+        );
+
+        assert!(res.is_err());
+    }
+
+    #[test]
     fn test_ext_hex() {
         let name = PathBuf::from("tmp/test.hex");
         let ext = check_file_format(name.as_ref()).expect("Failed to check file format");
