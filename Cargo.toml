@@ -38,3 +38,6 @@ plugin = false
 proc-macro = false
 harness = true
 test = true
+
+[profile.release]
+lto = true
