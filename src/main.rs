@@ -78,10 +78,10 @@ struct Args {
     flag_end: Option<ByteOffset>,
     flag_size: Option<ByteOffset>,
     flag_fragment: Option<ByteOffset>,
-    flag_output: Option<String>,
+    flag_output: Option<PathBuf>,
     flag_binary: Vec<PathBuf>,
     arg_keyfile: String,
-    arg_file: String,
+    arg_file: PathBuf,
     arg_files: Vec<String>,
     arg_input: PathBuf,
     flag_offset: Vec<ByteOffset>,
@@ -141,7 +141,7 @@ fn run() -> Result<()> {
                 // verify
                 let signed_filename = concat::derive_output_filename(Path::new(item))?;
                 signer.verify_file(&signed_filename)?;
-                info!("signing success: \"{}\"", &signed_filename.as_str());
+                info!("signing success: \"{:?}\"", &signed_filename);
             }
         } else {
             let path_victim = &args.arg_file.as_ref();
@@ -158,7 +158,7 @@ fn run() -> Result<()> {
 
             signer.verify_file(&signed_filename)?;
 
-            info!("signing success: \"{}\"", signed_filename.as_str());
+            info!("signing success: \"{:?}\"", signed_filename);
         }
         Ok(())
     } else if args.cmd_cut {

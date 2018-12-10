@@ -18,9 +18,6 @@ pub enum ScalpelError {
     #[fail(display = "Failed to resolve Path")]
     PathError,
 
-    #[fail(display = "Failed to seek from start")]
-    SeekError,
-
     #[fail(display = "Failed to parse Keys from .pk8")]
     ParsePk8Error,
 
