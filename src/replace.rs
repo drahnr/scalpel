@@ -1,10 +1,8 @@
 use bytes::BytesMut;
 use errors::*;
 use rand::Rng;
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::path::{Path, PathBuf};
-use stitch::{FillPattern, FileFormat};
+use stitch::{FillPattern, FileFormat, write_file};
 
 pub fn replace_file(
     replace_path: PathBuf,
@@ -78,23 +76,12 @@ fn replace(
     Ok(output)
 }
 
-fn write_file(path: &Path, bytes: BytesMut) -> Result<()> {
-    let mut file = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(path)
-        .map_err(|err| ScalpelError::OpeningError.context(format!("{}: {:?}", err, path)))?;
-
-    file.write(&bytes)?;
-
-    Ok(())
-}
 
 #[cfg(test)]
 mod test {
     use super::*;
     use std::io::Read;
+    use std::fs::OpenOptions;
 
     #[test]
     fn replace_a_bit_bin() {

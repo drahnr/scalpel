@@ -14,7 +14,6 @@ extern crate ring;
 extern crate serde;
 #[macro_use]
 extern crate common_failures;
-#[macro_use]
 extern crate failure;
 extern crate ihex;
 extern crate rand;
@@ -40,8 +39,8 @@ const USAGE: &'static str = "
 scalpel
 
 Usage:
-  scalpel cut [--fragment=<fragment>] [--start=<start>] --end=<end> --output=<output> <file>
-  scalpel cut [--fragment=<fragment>] [--start=<start>] --size=<size> --output=<output> <file>
+  scalpel cut [--fragment=<fragment>] [--start=<start>] --end=<end> --output=<output> <file> [--file-format=<format>]
+  scalpel cut [--fragment=<fragment>] [--start=<start>] --size=<size> --output=<output> <file> [--file-format=<format>]
   scalpel sign <keyfile> [--output=<output>] [--format=<format>] <file>
   scalpel sign <keyfile> <files>...
   scalpel stitch (--binary=<binary> --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
@@ -199,6 +198,7 @@ fn run() -> Result<()> {
             start,
             size,
             fragment_size as usize,
+            args.flag_file_format.unwrap_or_default()
         )
         .and_then(|_| {
             info!("Cutting success");

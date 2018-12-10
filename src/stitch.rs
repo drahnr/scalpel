@@ -120,7 +120,7 @@ pub fn stitch(
     }
 }
 
-fn write_file(path: &Path, bytes: BytesMut) -> Result<()> {
+pub fn write_file(path: &Path, bytes: BytesMut) -> Result<()> {
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -187,7 +187,7 @@ mod test {
         super::stitch_files(
             files,
             offsets,
-            "stitched_test".to_string(),
+            "tmp/stitched_test".to_string(),
             FillPattern::Zero,
             FileFormat::Bin
         )
@@ -195,7 +195,7 @@ mod test {
         let buf = {
             let mut file = OpenOptions::new()
                 .read(true)
-                .open("stitched_test")
+                .open("tmp/stitched_test")
                 .map_err(|err| ScalpelError::OpeningError.context(err))
                 .expect("Failed to open stitched file");
 
@@ -221,7 +221,7 @@ mod test {
         super::stitch_files(
             files,
             offsets,
-            "stitched_test.hex".to_string(),
+            "tmp/stitched_test.hex".to_string(),
             FillPattern::Zero,
             FileFormat::Hex
         )
@@ -229,7 +229,7 @@ mod test {
         let buf = {
             let mut file = OpenOptions::new()
                 .read(true)
-                .open("stitched_test.hex")
+                .open("tmp/stitched_test.hex")
                 .map_err(|err| ScalpelError::OpeningError.context(err))
                 .expect("Failed to open stitched file");
 
@@ -257,7 +257,7 @@ mod test {
         let res = super::stitch_files(
             files,
             offsets,
-            "stitched_test.hex".to_string(),
+            "tmp/stitched_test.hex".to_string(),
             FillPattern::Zero,
             FileFormat::Elf
         );
