@@ -50,7 +50,7 @@ fn read_hex2string(name: &Path) -> Result<String> {
 }
 
 
-fn write_hex_file(path: &Path, bytes: BytesMut) -> Result<()> {
+pub fn write_hex_file(path: &Path, bytes: BytesMut) -> Result<()> {
     
     let vec_content = bytes.to_vec();
     

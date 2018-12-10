@@ -4,7 +4,7 @@ use rand::Rng;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use stitch::FillPattern;
+use stitch::{FillPattern, FileFormat};
 
 pub fn replace_file(
     replace_path: PathBuf,
@@ -13,6 +13,7 @@ pub fn replace_file(
     start: u64,
     size: u64,
     fill_pattern: FillPattern,
+    file_format: FileFormat
 ) -> Result<()> {
     let content = ::stitch::read_file(input.as_ref())?;
     let replace_bytes = ::stitch::read_file(replace_path.as_ref())?;
@@ -25,7 +26,13 @@ pub fn replace_file(
         fill_pattern,
     )?;
 
-    write_file(Path::new(&output), replaced)?;
+    match file_format {
+        FileFormat::Bin => write_file(Path::new(&output), replaced)?,
+        FileFormat::Hex => ::hex_convert::write_hex_file(Path::new(&output), replaced)?,
+        _ => return Err(ScalpelError::UnknownFileFormat
+                        .context(format!("unimplemented extension {:?}", file_format))
+                        .into()),
+    }
 
     Ok(())
 }
@@ -90,7 +97,7 @@ mod test {
     use std::io::Read;
 
     #[test]
-    fn replace_a_bit() {
+    fn replace_a_bit_bin() {
         let input = PathBuf::from("tmp/test_bytes");
         let replacing = PathBuf::from("tmp/signme.bin");
 
@@ -101,6 +108,7 @@ mod test {
             0,
             630,
             FillPattern::One,
+            FileFormat::Bin
         )
         .expect("Failed to replace file");
 
@@ -120,6 +128,44 @@ mod test {
         assert_eq!(buf.len(), 2048);
 
         assert_eq!(buf[625..630], [0xFF; 5]);
+    }
+
+    #[test]
+    fn replace_a_bit_hex() {
+        let input = PathBuf::from("tmp/test_bytes");
+        let replacing = PathBuf::from("tmp/signme.bin");
+
+        replace_file(
+            replacing,
+            input,
+            "tmp/replaced.hex".to_string(),
+            0,
+            630,
+            FillPattern::One,
+            FileFormat::Hex
+        )
+        .expect("Failed to replace file");
+
+        let buf = {
+            let mut file = OpenOptions::new()
+                .read(true)
+                .open("tmp/replaced.hex")
+                .map_err(|err| ScalpelError::OpeningError.context(err))
+                .expect("Failed to open replaced file");
+
+            let mut buf = String::new();
+            file.read_to_string(&mut buf)
+                .expect("Failed to read replaced file");
+            buf
+        };
+
+                    // 16 bytes per row, 44 char per row + one EOF record
+        let no_char = 2048 / 16 * (1+2+4+2+32+2+1) +11;
+        assert_eq!(buf.len(), no_char);
+
+        // assert_eq!(buf[625..630], [0xFF; 5]);
+        // line 39 contains the start of the replaced section
+        assert_eq!(buf.lines().nth(39).unwrap(), ":1002700095FFFFFFFFFFB7B8B9BAC2C3C4C5C6C771");
     }
 
 }
