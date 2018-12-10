@@ -5,7 +5,7 @@
 
 A scalpel and stitch tool for binaries. Maybe also a signing tool, maybe.
 
-### Snip around, stich up and/or sign binaries
+### Snip around, stitch up and/or sign binaries
 
 This is mostly used for the case where parts of the binary need to be extracted or replaced.
 
@@ -23,7 +23,7 @@ This is mostly used for the case where parts of the binary need to be extracted 
 
     ```bash
     scalpel stitch --binary tmp/test_bytes --offset 0    --binary tmp/test_bytes --offset 2048 --fill-pattern zero --output stitched.bin
-    scalpel stitch --binary tmp/test_bytes --offset 2Ki --binary tmp/test_bytes --offset 0 --fill-pattern one --output stitched.bin
+    scalpel stitch --binary tmp/test_bytes --offset 2Ki --binary tmp/test_bytes --offset 0 --fill-pattern one --output stitched.hex --file-format hex
     scalpel stitch --binary tmp/test_bytes --offset 2058 --binary tmp/test_bytes --offset 10 --fill-pattern random --output stitched.bin
     ```
 
@@ -31,8 +31,9 @@ This is mostly used for the case where parts of the binary need to be extracted 
 
     ```bash
     scalpel replace --start 1Ki --end 2Ki --replace tmp/test_cut_out --output cut tmp/test_bytes
-    scalpel replace --end 2Ki --replace tmp/test_cut_out --output cut tmp/test_bytes
+    scalpel replace --end 2Ki --replace tmp/test_cut_out --output cut tmp/test_bytes --file-format bin
     scalpel replace --start 1Ki --size 1Ki --replace tmp/test_cut_out --output cut tmp/test_bytes
+    scalpel replace --start 1Ki --size 1Ki --replace tmp/test_cut_out --output cut tmp/test_bytes.hex --file-format hex
     ```
 
 * [alpha] sign firmware for authenticity with edcsa using the ed25519 curve
@@ -52,10 +53,11 @@ This is mostly used for the case where parts of the binary need to be extracted 
 * [ ] Allow hexadecimal input
 * [x] Allow multipile input scales (K = 1000, Ki = 1024, M = 1e6, Mi = 1024*1024, ...)
 * [ ] Add verifier option for alignment to given sector/page size
+* [x] Allow files in IntelHex format for in- and output
 
 #### Common / Hints
 
-* You need th extracted binary as include? Use `xxd -i sliced.bin > sliced_binary.h` to create a header file out of the result.
+* You need the extracted binary as include? Use `xxd -i sliced.bin > sliced_binary.h` to create a header file out of the result.
 
 * Convert RSA keys in .pem format to pkcs8 format via openssl (see `ring` doc [doc-ring] ), `openssl` supports Ed25519 algorithm currently only on `master`
 
