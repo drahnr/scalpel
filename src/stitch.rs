@@ -37,7 +37,7 @@ impl Default for FileFormat {
 pub fn stitch_files(
     files: Vec<PathBuf>,
     offsets: Vec<ByteOffset>,
-    output: String,
+    output: PathBuf,
     fill_pattern: FillPattern,
     file_format: FileFormat
 ) -> Result<()> {
@@ -153,7 +153,7 @@ where
     Ok((sorted_vec, offset_sorted))
 }
 
-fn check_file_format(name: &Path) -> Result<FileFormat> {
+pub fn check_file_format(name: &Path) -> Result<FileFormat> {
     let ext = match name.extension() {
         Some(e) => e.to_str().unwrap(),
         None => return Ok(FileFormat::NoEnd), // a bit risky to map all None to NoEnd, could also be a dir
@@ -179,6 +179,7 @@ mod test {
             PathBuf::from("tmp/test_bytes"),
             PathBuf::from("tmp/test_bytes"),
         ];
+        let stitched = PathBuf::from("tmp/stitched_test");
 
         let offsets = vec![
             ByteOffset::new(0, Magnitude::Unit),
@@ -187,7 +188,7 @@ mod test {
         super::stitch_files(
             files,
             offsets,
-            "tmp/stitched_test".to_string(),
+            stitched,
             FillPattern::Zero,
             FileFormat::Bin
         )
@@ -213,6 +214,7 @@ mod test {
             PathBuf::from("tmp/test_bytes"),
             PathBuf::from("tmp/test_bytes"),
         ];
+        let stitched = PathBuf::from("tmp/stitched_test.hex");
 
         let offsets = vec![
             ByteOffset::new(0, Magnitude::Unit),
@@ -221,7 +223,7 @@ mod test {
         super::stitch_files(
             files,
             offsets,
-            "tmp/stitched_test.hex".to_string(),
+            stitched,
             FillPattern::Zero,
             FileFormat::Hex
         )
@@ -249,6 +251,7 @@ mod test {
             PathBuf::from("tmp/test_bytes"),
             PathBuf::from("tmp/test_bytes"),
         ];
+        let stitched = PathBuf::from("tmp/stitched_test.elf");
 
         let offsets = vec![
             ByteOffset::new(0, Magnitude::Unit),
@@ -257,7 +260,7 @@ mod test {
         let res = super::stitch_files(
             files,
             offsets,
-            "tmp/stitched_test.hex".to_string(),
+            stitched,
             FillPattern::Zero,
             FileFormat::Elf
         );

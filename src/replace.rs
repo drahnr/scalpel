@@ -7,7 +7,7 @@ use stitch::{FillPattern, FileFormat, write_file};
 pub fn replace_file(
     replace_path: PathBuf,
     input: PathBuf,
-    output: String,
+    output: PathBuf,
     start: u64,
     size: u64,
     fill_pattern: FillPattern,
@@ -87,11 +87,12 @@ mod test {
     fn replace_a_bit_bin() {
         let input = PathBuf::from("tmp/test_bytes");
         let replacing = PathBuf::from("tmp/signme.bin");
+        let replaced = PathBuf::from("tmp/replaced");
 
         replace_file(
             replacing,
             input,
-            "tmp/replaced".to_string(),
+            replaced,
             0,
             630,
             FillPattern::One,
@@ -121,11 +122,12 @@ mod test {
     fn replace_a_bit_hex() {
         let input = PathBuf::from("tmp/test_bytes");
         let replacing = PathBuf::from("tmp/signme.bin");
+        let replaced = PathBuf::from("tmp/replaced.hex");
 
         replace_file(
             replacing,
             input,
-            "tmp/replaced.hex".to_string(),
+            replaced,
             0,
             630,
             FillPattern::One,
@@ -159,11 +161,12 @@ mod test {
     fn try_replace_elf() {
         let input = PathBuf::from("tmp/test_bytes");
         let replacing = PathBuf::from("tmp/signme.bin");
+        let replaced = PathBuf::from("tmp/replaced.elf");
 
         let res = replace_file(
             replacing,
             input,
-            "tmp/replaced.hex".to_string(),
+            replaced,
             0,
             630,
             FillPattern::One,

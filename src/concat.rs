@@ -2,12 +2,12 @@ use bytes::Bytes;
 use ring::signature;
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
-use std::path::Path;
+use std::path::{PathBuf, Path};
 
 use errors::*;
 
 /// open output file, add "-signed" to name
-pub fn derive_output_filename(path: &Path) -> Result<String> {
+pub fn derive_output_filename(path: &Path) -> Result<PathBuf> {
     // get file
     let filename = path
         .to_str()
@@ -15,11 +15,13 @@ pub fn derive_output_filename(path: &Path) -> Result<String> {
 
     let file_split: Vec<&str> = filename.rsplitn(2, '.').collect();
 
-    Ok(if file_split.len() > 1 {
+    let path_string = if file_split.len() > 1 {
         format!("{}-signed.{}", file_split[1], file_split[0])
     } else {
         format!("{}-signed", file_split[0])
-    })
+    };
+
+    Ok(PathBuf::from(path_string))
 }
 
 /// takes a file and creates a copy with signature appended
@@ -31,7 +33,7 @@ pub fn append_signature(path: &Path, sig: &signature::Signature) -> Result<()> {
         .write(true)
         .truncate(true)
         .create(true)
-        .open(Path::new(&file_sig))
+        .open(file_sig)
         .map_err(|err| ScalpelError::OpeningError.context(err))?;
 
     // open input file
