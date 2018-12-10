@@ -15,8 +15,8 @@ This is mostly used for the case where parts of the binary need to be extracted 
 
     ```bash
     scalpel cut --start 0 --end 4Ki --output bootloader.bin firmware.bin
-    scalpel cut --start 4Ki --size 241664 --output part_A.bin firmware.bin
-    scalpel cut --start 282624 --size 241664 --output part_B.bin firmware.bin
+    scalpel cut --start 4Ki --size 241664 --output part_A.bin firmware.bin --file-format bin
+    scalpel cut --start 282624 --size 241664 --output part_B.bin firmware.hex --file-format hex
     ```
 
 * stitch firmware pieces together such as bootloader and application
