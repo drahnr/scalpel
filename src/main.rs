@@ -66,7 +66,7 @@ Options:
   --format=<format>             Specify the key format, eihter pkcs8, pem, bytes or new
   --fill-pattern=<fill_patern>  Specify padding style for stitching (random|one|zero)
   --replace=<replace>           File which replaces the original part
-  --file-format=<format>             define output file format as either bin (default) or hex, has no influence on file ending!
+  --file-format=<format>        define output file format as either bin (default) or hex, has no influence on file ending!
 ";
 
 #[derive(Debug, Deserialize)]
