@@ -44,9 +44,9 @@ Usage:
   scalpel cut [--fragment=<fragment>] [--start=<start>] --size=<size> --output=<output> <file>
   scalpel sign <keyfile> [--output=<output>] [--format=<format>] <file>
   scalpel sign <keyfile> <files>...
-  scalpel stitch (--binary=<binary> --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>]
-  scalpel replace [--start=<start>] --end=<end> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>]
-  scalpel replace [--start=<start>] --size=<size> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>]
+  scalpel stitch (--binary=<binary> --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
+  scalpel replace [--start=<start>] --end=<end> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
+  scalpel replace [--start=<start>] --size=<size> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
   scalpel (-h | --help)
   scalpel (-v |--version)
 
@@ -66,6 +66,7 @@ Options:
   --format=<format>             Specify the key format, eihter pkcs8, pem, bytes or new
   --fill-pattern=<fill_patern>  Specify padding style for stitching (random|one|zero)
   --replace=<replace>           File which replaces the original part
+  --file-format=<format>             define output file format as either bin (default) or hex, has no influence on file ending!
 ";
 
 #[derive(Debug, Deserialize)]
@@ -90,6 +91,7 @@ struct Args {
     flag_replace: PathBuf,
     flag_version: bool,
     flag_help: bool,
+    flag_file_format: Option<stitch::FileFormat>,
 }
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
@@ -210,6 +212,7 @@ fn run() -> Result<()> {
             args.flag_offset,
             args.flag_output.unwrap(),
             args.flag_fill_pattern.unwrap_or_default(),
+            args.flag_file_format.unwrap_or_default()
         )?;
 
         Ok(())
@@ -248,6 +251,7 @@ fn run() -> Result<()> {
             start,
             size,
             args.flag_fill_pattern.unwrap_or_default(),
+            args.flag_file_format.unwrap_or_default()
         )?;
 
         Ok(())

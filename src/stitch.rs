@@ -20,7 +20,7 @@ impl Default for FillPattern {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub enum FileFormat {
     Bin,
     Hex,
@@ -28,11 +28,18 @@ pub enum FileFormat {
     NoEnd,
 }
 
+impl Default for FileFormat {
+    fn default() -> Self {
+        FileFormat::Bin
+    }
+}
+
 pub fn stitch_files(
     files: Vec<PathBuf>,
     offsets: Vec<ByteOffset>,
     output: String,
     fill_pattern: FillPattern,
+    file_format: FileFormat
 ) -> Result<()> {
     let offsets: Vec<usize> = offsets.iter().map(|ele| ele.as_usize()).collect();
 
@@ -60,7 +67,13 @@ pub fn stitch_files(
                 )
             });
 
-    write_file(Path::new(&output), stitched?)?;
+    match file_format {
+        FileFormat::Bin => write_file(Path::new(&output), stitched?)?,
+        FileFormat::Hex => ::hex_convert::write_hex_file(Path::new(&output), stitched?)?,
+        _ => return Err(ScalpelError::UnknownFileFormat
+                        .context(format!("unimplemented extension {:?}", file_format))
+                        .into()),
+    }
 
     Ok(())
 }
@@ -161,7 +174,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn stitch_it() {
+    fn stitch_it_bin() {
         let files = vec![
             PathBuf::from("tmp/test_bytes"),
             PathBuf::from("tmp/test_bytes"),
@@ -176,6 +189,7 @@ mod test {
             offsets,
             "stitched_test".to_string(),
             FillPattern::Zero,
+            FileFormat::Bin
         )
         .expect("Failed to stitch two files");
         let buf = {
@@ -191,6 +205,42 @@ mod test {
             buf
         };
         assert_eq!(buf.len(), 4096);
+    }
+
+    #[test]
+    fn stitch_it_hex() {
+        let files = vec![
+            PathBuf::from("tmp/test_bytes"),
+            PathBuf::from("tmp/test_bytes"),
+        ];
+
+        let offsets = vec![
+            ByteOffset::new(0, Magnitude::Unit),
+            ByteOffset::new(2, Magnitude::Ki),
+        ];
+        super::stitch_files(
+            files,
+            offsets,
+            "stitched_test.hex".to_string(),
+            FillPattern::Zero,
+            FileFormat::Hex
+        )
+        .expect("Failed to stitch two files");
+        let buf = {
+            let mut file = OpenOptions::new()
+                .read(true)
+                .open("stitched_test.hex")
+                .map_err(|err| ScalpelError::OpeningError.context(err))
+                .expect("Failed to open stitched file");
+
+            let mut buf = String::new();
+            file.read_to_string(&mut buf)
+                .expect("Failed to read stitched file");
+            buf
+        };
+                    // 16 bytes per row, 44 char per row + one EOF record
+        let no_char = 4096 / 16 * (1+2+4+2+32+2+1) +11;
+        assert_eq!(buf.len(),  no_char as usize);
     }
 
     #[test]
