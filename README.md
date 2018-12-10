@@ -1,6 +1,6 @@
 # scalpel
 
-[![Build Status](https://ci.spearow.io/api/v1/teams/main/pipelines/scalpel/jobs/master-validate/badge)](https://ci.spearow.io/teams/main/pipelines/scalpel-bin) [![Crates.io](https://img.shields.io/crates/v/scalpel-bin.svg)](https://crates.io/crates/scalpel-bin) [![docs.rs](https://docs.rs/scalpel-bin/badge.svg)](https://docs.rs/scalpel-bin) [![License](https://img.shields.io/crates/l/scalpel-bin.svg)](#license)
+[![Build Status](https://ci.spearow.io/api/v1/teams/main/pipelines/scalpel/jobs/master-validate/badge)](https://ci.spearow.io/teams/main/pipelines/scalpel) [![Crates.io](https://img.shields.io/crates/v/scalpel-bin.svg)](https://crates.io/crates/scalpel-bin) [![License](https://img.shields.io/crates/l/scalpel-bin.svg)](#license)
 
 
 A scalpel and stitch tool for binaries. Maybe also a signing tool, maybe.
