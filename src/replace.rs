@@ -168,4 +168,22 @@ mod test {
         assert_eq!(buf.lines().nth(39).unwrap(), ":1002700095FFFFFFFFFFB7B8B9BAC2C3C4C5C6C771");
     }
 
+    #[test]
+    fn try_replace_elf() {
+        let input = PathBuf::from("tmp/test_bytes");
+        let replacing = PathBuf::from("tmp/signme.bin");
+
+        let res = replace_file(
+            replacing,
+            input,
+            "tmp/replaced.hex".to_string(),
+            0,
+            630,
+            FillPattern::One,
+            FileFormat::Elf
+        );
+
+        assert!(res.is_err());
+    }
+
 }
