@@ -1,5 +1,3 @@
-use bytes::BytesMut;
-
 use errors::*;
 use hex_convert::{convert_hex2bin, write_hex_file};
 use ::stitch::{write_file, FileFormat, check_file_format, read_file};
@@ -10,7 +8,7 @@ pub fn cut_out_bytes(
     output: PathBuf,
     start: u64,
     size: u64,
-    fragment_size: usize,
+    // fragment_size: usize,
     file_format: FileFormat,
 ) -> Result<()> {
     let mut content = match check_file_format(victim.as_ref())? {
@@ -21,26 +19,10 @@ pub fn cut_out_bytes(
                         .into()),
                 };
 
-    content.advance(start as usize);
-
-    let mut out_buf = BytesMut::new();
-
-    let mut remaining = size;
-
-    let fragment = content.to_vec();
-
-    loop {
-        if remaining < fragment_size as u64 {
-            out_buf
-                .extend_from_slice(&fragment[0..(remaining as usize)]);
-
-            break;
-        } else {
-            out_buf
-                .extend_from_slice(&fragment[..]);
-            remaining -= fragment_size as u64;
-        }
-    }
+    // split file in part before and after start index
+    let mut out_buf = content.split_off(start as usize);
+    // split off everything after size
+    out_buf.split_off(size as usize);
 
     match file_format {
         FileFormat::Bin => write_file(Path::new(&output), out_buf),
@@ -79,7 +61,7 @@ mod test {
         }
         // cut bytes from this file
         let output = PathBuf::from("tmp/test_cut_out");
-        cut_out_bytes(victim, output.clone(), 5, 4, 1, FileFormat::Bin).expect("Failed to cut");
+        cut_out_bytes(victim, output.clone(), 5, 4, FileFormat::Bin).expect("Failed to cut");
 
         // read content of output
         let mut output_bytes = vec![0, 0, 0, 0];
@@ -115,7 +97,7 @@ mod test {
         }
         // cut bytes from this file
         let output = PathBuf::from("tmp/test_cut_out.hex");
-        cut_out_bytes(victim, output.clone(), 5, 24, 1, FileFormat::Hex).expect("Failed to cut");
+        cut_out_bytes(victim, output.clone(), 5, 24, FileFormat::Hex).expect("Failed to cut");
 
         // read content of output
         let mut output_str = String::new();

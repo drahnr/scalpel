@@ -190,14 +190,14 @@ fn run() -> Result<()> {
                 .context("Either end addr or size has to be specified")
                 .into());
         };
-        let fragment_size = args.flag_fragment.unwrap_or(Default::default()).as_u64(); // CHUNK 8192 from cut
+        // let fragment_size = args.flag_fragment.unwrap_or(Default::default()).as_u64(); // CHUNK 8192 from cut
 
         cut::cut_out_bytes(
             args.arg_file,
             args.flag_output.unwrap(),
             start,
             size,
-            fragment_size as usize,
+            // fragment_size as usize,
             args.flag_file_format.unwrap_or_default()
         )
         .and_then(|_| {
