@@ -26,10 +26,10 @@ pub fn cut_out_bytes(
     let mut out_buf = BytesMut::new();
 
     let mut remaining = size;
-    loop {
-        let mut fragment = vec![0; fragment_size-1];
-        fragment = content.to_vec();
 
+    let fragment = content.to_vec();
+
+    loop {
         if remaining < fragment_size as u64 {
             out_buf
                 .extend_from_slice(&fragment[0..(remaining as usize)]);
