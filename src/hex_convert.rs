@@ -3,8 +3,8 @@ use errors::*;
 use ihex::reader::Reader;
 use ihex::record::*;
 use ihex::writer;
-use std::io::{Read, Write};
 use std::fs::OpenOptions;
+use std::io::{Read, Write};
 use std::path::Path;
 
 use super::stitch::{stitch, FillPattern};
@@ -49,25 +49,26 @@ fn read_hex2string(name: &Path) -> Result<String> {
     Ok(buf)
 }
 
-
 pub fn write_hex_file(path: &Path, bytes: BytesMut) -> Result<()> {
-    
     let vec_content = bytes.to_vec();
-    
+
     let byte_count = 16;
-    let rec_count = vec_content.len()/byte_count;
+    let rec_count = vec_content.len() / byte_count;
     let mut records: Vec<Record> = Vec::new();
 
     for ind in 0..rec_count {
-        let data = &vec_content[ind*byte_count..(ind+1)*byte_count];
-        records.push(Record::Data { offset: 16*ind as u16, value: data.to_vec()});
+        let data = &vec_content[ind * byte_count..(ind + 1) * byte_count];
+        records.push(Record::Data {
+            offset: 16 * ind as u16,
+            value: data.to_vec(),
+        });
     }
 
     let eof_rec = Record::EndOfFile;
     records.push(eof_rec);
 
     let ihex_obj = writer::create_object_file_representation(&records)?;
-    
+
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -82,8 +83,8 @@ pub fn write_hex_file(path: &Path, bytes: BytesMut) -> Result<()> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::path::PathBuf;
     use bytes::BufMut;
+    use std::path::PathBuf;
 
     #[test]
     fn test_read_string() {
@@ -141,7 +142,7 @@ mod test {
     fn test_write_hex() {
         let name = PathBuf::from("tmp/test_write.hex");
         let mut bytes = BytesMut::with_capacity(255);
-        
+
         bytes.put_u64_le(1);
         bytes.put_u64_le(2);
         bytes.put_u64_le(3);
@@ -158,15 +159,17 @@ mod test {
         write_hex_file(name.as_ref(), bytes).expect("Failed to write bytes to hex file");
 
         let mut hex_file = OpenOptions::new()
-                .read(true)
-                .open("tmp/test_write.hex")
-                .map_err(|err| ScalpelError::OpeningError.context(err))
-                .expect("Failed to open stitched file");
+            .read(true)
+            .open("tmp/test_write.hex")
+            .map_err(|err| ScalpelError::OpeningError.context(err))
+            .expect("Failed to open stitched file");
 
         let mut content = String::new();
-        hex_file.read_to_string(&mut content).expect("Failed to read hex file");
+        hex_file
+            .read_to_string(&mut content)
+            .expect("Failed to read hex file");
         println!("{}", content);
-        
+
         let hex = ":1000000001000000000000000200000000000000ED
 :1000100003000000000000000400000000000000D9
 :1000200005000000000000000600000000000000C5

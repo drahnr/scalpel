@@ -2,7 +2,7 @@ use bytes::Bytes;
 use ring::signature;
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
 use errors::*;
 

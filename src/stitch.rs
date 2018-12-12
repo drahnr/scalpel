@@ -3,7 +3,7 @@ use byte_offset::*;
 use bytes::BytesMut;
 use errors::*;
 use rand::Rng;
-use std::fs::{OpenOptions};
+use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
@@ -39,7 +39,7 @@ pub fn stitch_files(
     offsets: Vec<ByteOffset>,
     output: PathBuf,
     fill_pattern: FillPattern,
-    file_format: FileFormat
+    file_format: FileFormat,
 ) -> Result<()> {
     let offsets: Vec<usize> = offsets.iter().map(|ele| ele.as_usize()).collect();
 
@@ -70,9 +70,11 @@ pub fn stitch_files(
     match file_format {
         FileFormat::Bin => write_file(Path::new(&output), stitched?)?,
         FileFormat::Hex => ::hex_convert::write_hex_file(Path::new(&output), stitched?)?,
-        _ => return Err(ScalpelError::UnknownFileFormat
-                        .context(format!("unimplemented extension {:?}", file_format))
-                        .into()),
+        _ => {
+            return Err(ScalpelError::UnknownFileFormat
+                .context(format!("unimplemented extension {:?}", file_format))
+                .into())
+        }
     }
 
     Ok(())
@@ -185,14 +187,8 @@ mod test {
             ByteOffset::new(0, Magnitude::Unit),
             ByteOffset::new(2, Magnitude::Ki),
         ];
-        super::stitch_files(
-            files,
-            offsets,
-            stitched,
-            FillPattern::Zero,
-            FileFormat::Bin
-        )
-        .expect("Failed to stitch two files");
+        super::stitch_files(files, offsets, stitched, FillPattern::Zero, FileFormat::Bin)
+            .expect("Failed to stitch two files");
         let buf = {
             let mut file = OpenOptions::new()
                 .read(true)
@@ -220,14 +216,8 @@ mod test {
             ByteOffset::new(0, Magnitude::Unit),
             ByteOffset::new(2, Magnitude::Ki),
         ];
-        super::stitch_files(
-            files,
-            offsets,
-            stitched,
-            FillPattern::Zero,
-            FileFormat::Hex
-        )
-        .expect("Failed to stitch two files");
+        super::stitch_files(files, offsets, stitched, FillPattern::Zero, FileFormat::Hex)
+            .expect("Failed to stitch two files");
         let buf = {
             let mut file = OpenOptions::new()
                 .read(true)
@@ -240,9 +230,9 @@ mod test {
                 .expect("Failed to read stitched file");
             buf
         };
-                    // 16 bytes per row, 44 char per row + one EOF record
-        let no_char = 4096 / 16 * (1+2+4+2+32+2+1) +11;
-        assert_eq!(buf.len(),  no_char as usize);
+        // 16 bytes per row, 44 char per row + one EOF record
+        let no_char = 4096 / 16 * (1 + 2 + 4 + 2 + 32 + 2 + 1) + 11;
+        assert_eq!(buf.len(), no_char as usize);
     }
 
     #[test]
@@ -257,13 +247,7 @@ mod test {
             ByteOffset::new(0, Magnitude::Unit),
             ByteOffset::new(2, Magnitude::Ki),
         ];
-        let res = super::stitch_files(
-            files,
-            offsets,
-            stitched,
-            FillPattern::Zero,
-            FileFormat::Elf
-        );
+        let res = super::stitch_files(files, offsets, stitched, FillPattern::Zero, FileFormat::Elf);
 
         assert!(res.is_err());
     }
@@ -290,6 +274,6 @@ mod test {
         let ext = check_file_format(name.as_ref()).expect("Failed to check file format");
 
         assert_eq!(ext, FileFormat::NoEnd);
-    }    
+    }
 
 }

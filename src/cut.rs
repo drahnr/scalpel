@@ -1,7 +1,7 @@
 use errors::*;
 use hex_convert::{convert_hex2bin, write_hex_file};
-use ::stitch::{write_file, FileFormat, check_file_format, read_file};
 use std::path::{Path, PathBuf};
+use stitch::{check_file_format, read_file, write_file, FileFormat};
 
 pub fn cut_out_bytes(
     victim: PathBuf,
@@ -12,12 +12,14 @@ pub fn cut_out_bytes(
     file_format: FileFormat,
 ) -> Result<()> {
     let mut content = match check_file_format(victim.as_ref())? {
-                    FileFormat::Bin | FileFormat::NoEnd => read_file(victim.as_ref())?,
-                    FileFormat::Hex => convert_hex2bin(victim.as_ref())?,
-                    _ => return Err(ScalpelError::UnknownFileFormat
-                        .context(format!("unimplemented extension {:?}", victim))
-                        .into()),
-                };
+        FileFormat::Bin | FileFormat::NoEnd => read_file(victim.as_ref())?,
+        FileFormat::Hex => convert_hex2bin(victim.as_ref())?,
+        _ => {
+            return Err(ScalpelError::UnknownFileFormat
+                .context(format!("unimplemented extension {:?}", victim))
+                .into())
+        }
+    };
 
     // split file in part before and after start index
     let mut out_buf = content.split_off(start as usize);
@@ -27,9 +29,11 @@ pub fn cut_out_bytes(
     match file_format {
         FileFormat::Bin => write_file(Path::new(&output), out_buf),
         FileFormat::Hex => write_hex_file(Path::new(&output), out_buf),
-        _ => return Err(ScalpelError::UnknownFileFormat
-                        .context(format!("unimplemented extension {:?}", file_format))
-                        .into()),
+        _ => {
+            return Err(ScalpelError::UnknownFileFormat
+                .context(format!("unimplemented extension {:?}", file_format))
+                .into())
+        }
     }
 }
 
@@ -37,9 +41,8 @@ pub fn cut_out_bytes(
 mod test {
     extern crate rand;
     use super::*;
-    use std::io::{Read, Write};
     use std::fs::OpenOptions;
-
+    use std::io::{Read, Write};
 
     #[test]
     fn test_cut_out_bin() {
@@ -76,12 +79,15 @@ mod test {
         println!("{:?}", output_bytes);
         assert_eq!(output_bytes, &bytes[5..9]);
     }
-    
+
     #[test]
     fn test_cut_out_hex() {
         // generate file with known byte content and cut some bytes out,
         // compare resulting file with bytes
-        let bytes: &[u8] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 27, 29];
+        let bytes: &[u8] = &[
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+            25, 26, 27, 27, 29,
+        ];
         // write file with this content
         let victim = PathBuf::from("tmp/test_cut");
         {
@@ -111,6 +117,6 @@ mod test {
 
         println!("{:?}", output_str);
         output_str.truncate(19);
-        assert_eq!(output_str, ":10000000050607080A" );
+        assert_eq!(output_str, ":10000000050607080A");
     }
 }
