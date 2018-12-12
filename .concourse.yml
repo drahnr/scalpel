@@ -86,6 +86,53 @@ jobs:
           caches:
           - path: cargo
 
+        on_success:
+          put: git-pull-request-resource
+          params:
+            path: git-pull-request-resource
+            context: compile
+            status: success
+        on_failure:
+          put: git-pull-request-resource
+          params:
+            path: git-pull-request-resource
+            context: compile
+            status: failure
+
+      - task: format-check
+        timeout: 15m
+        image: env-glibc
+        config:
+          platform: linux
+          inputs:
+          - name: git-pull-request-resource
+          run:
+            path: sh
+            args:
+            - -exc
+            - |
+              export CARGO_HOME="$(pwd)/../cargo"
+              rustc --version --verbose
+              rustup component add rustfmt-preview
+              cargo fmt -- --check
+            dir: git-pull-request-resource
+          caches:
+          - path: cargo
+
+        on_success:
+          put: git-pull-request-resource
+          params:
+            path: git-pull-request-resource
+            context: format-check
+            status: success
+
+        on_failure:
+          put: git-pull-request-resource
+          params:
+            path: git-pull-request-resource
+            context: format-check
+            status: failure
+
  #     - task: validate-musl
  #       timeout: 15m
  #       image: env-musl
@@ -106,18 +153,6 @@ jobs:
  #           dir: git-pull-request-resource
  #         caches:
  #         - path: cargo
-
-      on_success:
-        put: git-pull-request-resource
-        params:
-          path: git-pull-request-resource
-          status: success
-
-      on_failure:
-        put: git-pull-request-resource
-        params:
-          path: git-pull-request-resource
-          status: failure
 
   - name: master-validate
     build_logs_to_retain: 10
