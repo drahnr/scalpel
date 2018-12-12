@@ -28,6 +28,7 @@ failure_derive = "^0.1.2"
 common_failures = "^0.1.0"
 rand = "^0.5.5"
 ihex = "1.1"
+honggfuzz = "0.5"
 
 [dev-dependencies]
 rand = "^0.5.5"
@@ -35,6 +36,14 @@ rand = "^0.5.5"
 [[bin]]
 name = "scalpel"
 path = "src/main.rs"
+plugin = false
+proc-macro = false
+harness = false
+test = false
+
+[[bin]]
+name = "fuzz"
+path = "src/fuzz.rs"
 plugin = false
 proc-macro = false
 harness = true
