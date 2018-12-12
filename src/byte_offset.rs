@@ -1,8 +1,7 @@
 use errors::*;
-use std::fmt;
+use regex::{Captures, Regex};
 use serde::de;
-use regex::{Regex,Captures};
-
+use std::fmt;
 
 #[derive(Debug)]
 pub enum Magnitude {
@@ -33,8 +32,11 @@ impl Magnitude {
             "Gi" => Ok(Magnitude::Gi),
             _ => {
                 debug!("No idea what to do with {} as magnitude ", mag_str);
-                Err(ScalpelError::ParsingError{r: format!("Unknown Magnitude {}", mag_str)}.into())
-            },
+                Err(ScalpelError::ParsingError {
+                    r: format!("Unknown Magnitude {}", mag_str),
+                }
+                .into())
+            }
         }
     }
 
@@ -43,10 +45,10 @@ impl Magnitude {
             Magnitude::Unit => 1u64,
             Magnitude::K => 1000u64,
             Magnitude::Ki => 1024u64,
-            Magnitude::M => 1000u64*1000u64,
-            Magnitude::Mi => 1024u64*1024u64,
-            Magnitude::G => 1000u64*1000u64*1000u64,
-            Magnitude::Gi => 1024u64*1024u64*1024u64,
+            Magnitude::M => 1000u64 * 1000u64,
+            Magnitude::Mi => 1024u64 * 1024u64,
+            Magnitude::G => 1000u64 * 1000u64 * 1000u64,
+            Magnitude::Gi => 1024u64 * 1024u64 * 1024u64,
         }
     }
 
@@ -54,7 +56,6 @@ impl Magnitude {
         self.as_u64() as usize
     }
 }
-
 
 #[derive(Debug, Default)]
 pub struct ByteOffset {
@@ -79,7 +80,6 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
     where
         D: de::Deserializer<'de>,
     {
-
         struct ByteOffsetVisitor;
 
         impl<'de> de::Visitor<'de> for ByteOffsetVisitor {
@@ -93,35 +93,44 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
             where
                 E: de::Error,
             {
-                lazy_static!{
-                    static ref REGEX : Regex = Regex::new(r"^([0-9]+)((?:[KMGTE]i?)?)$").unwrap();
+                lazy_static! {
+                    static ref REGEX: Regex = Regex::new(r"^([0-9]+)((?:[KMGTE]i?)?)$").unwrap();
                 }
-                
-                let byte_offset = REGEX.captures(value).ok_or(Err::<Captures,ScalpelError>(ScalpelError::ParsingError{r: "".to_string()} ) )
-                .and_then(|captures| {
-                    if captures.len() == 3 {
-                        let num_str = &captures[1];
-                        let magnitude_str = &captures[2];
-                        let num : u64 = num_str
-                            .parse::<u64>()
-                            .map_err(|e| Err::<Captures,ScalpelError>(ScalpelError::ParsingError{r: format!("Failed to parse u64 {}", e)}) )?;
-                        let magnitude = Magnitude::parse(magnitude_str)
-                            .map_err(|e| Err::<Captures,ScalpelError>(ScalpelError::ParsingError{r: format!("Failed to parse magnitude {}", e)}) )?;
-                        Ok(ByteOffset::new(num, magnitude))
-                    } else {
-                        Ok(Default::default())
-                    }
-                }).map_err(|e| E::custom(format!("{:?}", e) ))?;
+
+                let byte_offset = REGEX
+                    .captures(value)
+                    .ok_or(Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
+                        r: "".to_string(),
+                    }))
+                    .and_then(|captures| {
+                        if captures.len() == 3 {
+                            let num_str = &captures[1];
+                            let magnitude_str = &captures[2];
+                            let num: u64 = num_str.parse::<u64>().map_err(|e| {
+                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
+                                    r: format!("Failed to parse u64 {}", e),
+                                })
+                            })?;
+                            let magnitude = Magnitude::parse(magnitude_str).map_err(|e| {
+                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
+                                    r: format!("Failed to parse magnitude {}", e),
+                                })
+                            })?;
+                            Ok(ByteOffset::new(num, magnitude))
+                        } else {
+                            Ok(Default::default())
+                        }
+                    })
+                    .map_err(|e| E::custom(format!("{:?}", e)))?;
                 Ok(byte_offset)
             }
-
         }
         deserializer.deserialize_str(ByteOffsetVisitor)
     }
 }
 
 // Old Stuff
-// fn deserialize_suffix( n: &str) -> Result<u64> 
+// fn deserialize_suffix( n: &str) -> Result<u64>
 // {
 //     Ok(match n {
 //         "Ki" => 1024,
@@ -139,9 +148,8 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
 //     })
 // }
 
-
 // pub fn serialize_cmd_opt(flag: String) -> Result<u64> {
-    
+
 //     let suffix: u64 = deserialize_suffix(flag.trim_matches(char::is_numeric))?;
 //     let val: u64 = flag.trim_matches(char::is_alphabetic).parse()?;
 

@@ -198,7 +198,7 @@ fn run() -> Result<()> {
             start,
             size,
             // fragment_size as usize,
-            args.flag_file_format.unwrap_or_default()
+            args.flag_file_format.unwrap_or_default(),
         )
         .and_then(|_| {
             info!("Cutting success");
@@ -212,7 +212,7 @@ fn run() -> Result<()> {
             args.flag_offset,
             args.flag_output.unwrap(),
             args.flag_fill_pattern.unwrap_or_default(),
-            args.flag_file_format.unwrap_or_default()
+            args.flag_file_format.unwrap_or_default(),
         )?;
 
         Ok(())
@@ -251,7 +251,7 @@ fn run() -> Result<()> {
             start,
             size,
             args.flag_fill_pattern.unwrap_or_default(),
-            args.flag_file_format.unwrap_or_default()
+            args.flag_file_format.unwrap_or_default(),
         )?;
 
         Ok(())
