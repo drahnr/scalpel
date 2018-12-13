@@ -103,7 +103,7 @@ mod test {
         }
         // cut bytes from this file
         let output = PathBuf::from("tmp/test_cut_out.hex");
-        cut_out_bytes(victim, output.clone(), 5, 24, FileFormat::Hex).expect("Failed to cut");
+        cut_out_bytes(victim, output.clone(), 5, 16, FileFormat::Hex).expect("Failed to cut");
 
         // read content of output
         let mut output_str = String::new();
@@ -116,7 +116,9 @@ mod test {
             .expect("Failed to read file");
 
         println!("{:?}", output_str);
-        output_str.truncate(19);
-        assert_eq!(output_str, ":10000000050607080A");
+        assert_eq!(
+            output_str,
+            ":10000000050607080A0B0C0D0E0F1011121314151C\n:00000001FF"
+        );
     }
 }
