@@ -22,7 +22,7 @@ pub fn cut_out_bytes(
     };
 
     // split file in part before and after start index
-    let mut out_buf = content.split_off(start as usize);
+    let mut out_buf = content.split_off(start as usize - 1);
     // split off everything after size
     out_buf.split_off(size as usize);
 
@@ -77,7 +77,7 @@ mod test {
             .expect("Failed to read file");
 
         println!("{:?}", output_bytes);
-        assert_eq!(output_bytes, &bytes[5..9]);
+        assert_eq!(output_bytes, &bytes[4..8]);
     }
 
     #[test]
@@ -118,7 +118,7 @@ mod test {
         println!("{:?}", output_str);
         assert_eq!(
             output_str,
-            ":10000000050607080A0B0C0D0E0F1011121314151C\n:00000001FF"
+            ":1000000004050607080A0B0C0D0E0F10111213142D\n:00000001FF"
         );
     }
 }
