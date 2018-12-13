@@ -45,23 +45,33 @@ fn read_hex2string(name: &Path) -> Result<String> {
 
     let mut buf = String::new();
     file.read_to_string(&mut buf)?;
+    let buf = buf.to_string();
 
     Ok(buf)
 }
 
-pub fn write_hex_file(path: &Path, bytes: BytesMut) -> Result<()> {
-    let vec_content = bytes.to_vec();
+pub fn write_hex_file(path: &Path, mut bytes: BytesMut) -> Result<()> {
+    // let vec_content = bytes.to_vec();
 
     let byte_count = 16;
-    let rec_count = vec_content.len() / byte_count;
+    let rec_count: f32 = bytes.len() as f32 / byte_count as f32;
     let mut records: Vec<Record> = Vec::new();
 
-    for ind in 0..rec_count {
-        let data = &vec_content[ind * byte_count..(ind + 1) * byte_count];
-        records.push(Record::Data {
-            offset: 16 * ind as u16,
-            value: data.to_vec(),
-        });
+    for ind in 0..rec_count.ceil() as usize {
+        if &bytes.len() > &byte_count {
+            // according to doc: split_to() is exclusive on the right: +1
+            // but tests state the opposite...
+            let data = bytes.split_to(byte_count);
+            records.push(Record::Data {
+                offset: (byte_count * ind) as u16,
+                value: data.to_vec(),
+            });
+        } else {
+            records.push(Record::Data {
+                offset: 16 * ind as u16,
+                value: bytes.to_vec(),
+            });
+        }
     }
 
     let eof_rec = Record::EndOfFile;
@@ -71,6 +81,7 @@ pub fn write_hex_file(path: &Path, bytes: BytesMut) -> Result<()> {
 
     let mut file = OpenOptions::new()
         .write(true)
+        .truncate(true)
         .create(true)
         .open(path)
         .map_err(|err| ScalpelError::OpeningError.context(format!("{}: {:?}", err, path)))?;
