@@ -147,7 +147,7 @@ mod test {
             input,
             replaced,
             0,
-            630,
+            642,
             FillPattern::One,
             FileFormat::Hex,
         )
@@ -170,10 +170,15 @@ mod test {
         let no_char = 2048 / 16 * (1 + 2 + 4 + 2 + 32 + 2 + 1) + 11;
         assert_eq!(buf.len(), no_char);
 
-        // line 39 contains the start of the replaced section
+        // line 39 contains the end of the replaced section with all 0xFF
         assert_eq!(
             buf.lines().nth(39).unwrap(),
-            ":1002700095FFFFFFFFFFB7B8B9BAC2C3C4C5C6C771"
+            ":1002700095FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8"
+        );
+        // line 40 contains the start of the original file with 0xFFFF at the beginning
+        assert_eq!(
+            buf.lines().nth(40).unwrap(),
+            ":10028000FFFFCAD2D3D4D5D6D7D8D9DAE2E3E4E592"
         );
     }
 
