@@ -1,6 +1,6 @@
 [package]
 name = "scalpel-bin"
-version = "0.3.0-alpha.0"
+version = "0.3.0-alpha.1"
 authors = ["Bernhard Schuster <bernhard@ahoi.io>", "Korbinian Maier <korbinian.maier@tum.de>"]
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
