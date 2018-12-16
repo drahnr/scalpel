@@ -249,13 +249,6 @@ jobs:
       resource: git-tag-resource
       trigger: true
 
-    - put: github-release
-      params:
-        name: release-name
-        tag: release-tag
-        globs:
-        - uploads/*
-
     - task: create-github-release
       timeout: 15m
       image: env-glibc
@@ -264,25 +257,55 @@ jobs:
         inputs:
         - name: git-repo
         outputs:
-        - name: github-release
+        - name: release-info
+        caches:
+        - path: cargo
         run:
           path: sh
           args:
             - -exc
             - |
+              export CARGO_HOME="$(pwd)/cargo"
+
+              mkdir -p "../release-info"
+              export RI_BASE_DIR="../release-info"
+              export RI_ARTIFACTS_DIR="${RI_BASE_DIR}/artifacts"
+              mkdir -p "${RI_ARTIFACTS_DIR}"
+              export RI_TAG_FILE="${RI_BASE_DIR}/TAG"
+              export RI_COMMITISH_FILE="${RI_BASE_DIR}/COMMITISH"
+              export RI_NAME_FILE="${RI_BASE_DIR}/NAME"
+
+              git rev-parse HEAD > "${RI_COMMITISH_FILE}"
+              #git log -n 1 --format="%h" HEAD > "../${RI_COMMITISH_FILE}"
+              cat "${RI_COMMITISH_FILE}"
+
+              # the v-prefixed version
+              cat ./.git/ref > "${RI_TAG_FILE}"
+              cat "${RI_TAG_FILE}"
+
+              # construct scalpel-v1.2.3
+              echo "scalpel-$(cat ./.git/ref)" > "${RI_NAME_FILE}"
+              cat "${RI_NAME_FILE}"
+
               # TODO cross compile to windows
               # $ cargo build --release --target x86_64-pc-windows-gnu
               # using the fedora provided precompiled static libs
               # and publish target/x86_64-pc-windows-gnu/release/scalpel.exe
               # TODO build for more OSes, such as fuchsia and BSD platforms
-              mkdir -p ../github-release/upload/
+              mkdir -pv "${RI_ARTIFACTS_DIR}"
               for TARGET in x86_64-unknown-linux-gnu ; do
-                cargo build --release --target ${TARGET} && \
-                cp target/${TARGET}/release/scalpel ../github-release/upload/scalpel-${TARGET}
+                echo "Prepping ${TARGET} ..."
+                cargo build --release --target "${TARGET}" && \
+                cp -vf "target/${TARGET}/release/scalpel" "${RI_ARTIFACTS_DIR}/scalpel-${TARGET}"
+                echo "Prepped ${TARGET} ."
+                echo ""
               done
-              cat .git/ref | tee ../github-release/release-version
-              # construct scalpel-v1.2.3
-              echo scalpel- > ../github-release/release-name
-              cat .git/ref | tee ../github-release/release-name
-
           dir: git-repo
+
+    - put: github-release
+      params:
+        name: release-info/NAME
+        tag: release-info/TAG
+        commitish: release-info/COMMITISH
+        globs:
+        - release-info/artifacts/*
