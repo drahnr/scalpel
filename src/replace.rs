@@ -20,7 +20,7 @@ pub fn replace_file(
         _ => {
             return Err(ScalpelError::UnknownFileFormat
                 .context(format!("unimplemented extension {:?}", input))
-                .into())
+                .into());
         }
     };
     let replace_bytes = match check_file_format(replace_path.as_ref())? {
@@ -29,7 +29,7 @@ pub fn replace_file(
         _ => {
             return Err(ScalpelError::UnknownFileFormat
                 .context(format!("unimplemented extension {:?}", replace_path))
-                .into())
+                .into());
         }
     };
 
@@ -47,7 +47,7 @@ pub fn replace_file(
         _ => {
             return Err(ScalpelError::UnknownFileFormat
                 .context(format!("unimplemented extension {:?}", file_format))
-                .into())
+                .into());
         }
     }
 

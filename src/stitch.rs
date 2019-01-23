@@ -73,7 +73,7 @@ pub fn stitch_files(
         _ => {
             return Err(ScalpelError::UnknownFileFormat
                 .context(format!("unimplemented extension {:?}", file_format))
-                .into())
+                .into());
         }
     }
 

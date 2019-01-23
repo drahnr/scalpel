@@ -17,7 +17,7 @@ pub fn cut_out_bytes(
         _ => {
             return Err(ScalpelError::UnknownFileFormat
                 .context(format!("unimplemented extension {:?}", victim))
-                .into())
+                .into());
         }
     };
 
@@ -32,7 +32,7 @@ pub fn cut_out_bytes(
         _ => {
             return Err(ScalpelError::UnknownFileFormat
                 .context(format!("unimplemented extension {:?}", file_format))
-                .into())
+                .into());
         }
     }
 }

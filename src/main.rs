@@ -127,7 +127,7 @@ fn run() -> Result<()> {
             fmt => {
                 return Err(ScalpelError::ArgumentError
                     .context(format!("File Format not recognized {}", fmt))
-                    .into())
+                    .into());
             }
         };
 
