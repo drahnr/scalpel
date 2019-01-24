@@ -175,7 +175,7 @@ mod test {
             .expect("Failed to append signature");
 
         assert!(signer
-            .verify_file(Path::new("./tmp/signme-signed.bin"))
+            .verify_file(Path::new("./tmp/test_sign-signed.bin"))
             .is_ok());
     }
 }
