@@ -89,7 +89,7 @@ mod test {
             25, 26, 27, 27, 29,
         ];
         // write file with this content
-        let victim = PathBuf::from("tmp/test_cut");
+        let victim = PathBuf::from("tmp/test_cut_bin");
         {
             let mut file_tester = OpenOptions::new()
                 .write(true)
