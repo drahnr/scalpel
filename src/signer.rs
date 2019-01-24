@@ -168,10 +168,10 @@ mod test {
             .expect("Failed to read pk8 keys from file");
 
         let signature = signer
-            .calculate_signature_of_file("./tmp/signme.bin")
+            .calculate_signature_of_file("./tmp/test_sign.bin")
             .expect("Signing failed");
 
-        append_signature(Path::new("./tmp/signme.bin"), &signature)
+        append_signature(Path::new("./tmp/test_sign.bin"), &signature)
             .expect("Failed to append signature");
 
         assert!(signer

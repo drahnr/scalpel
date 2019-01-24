@@ -6,7 +6,7 @@ Cargo.lock
 
 # tmp files from tests
 tmp/*signed*
-tmp/test_cut*
-tmp/replaced*
+tmp/cut*
+tmp/replace*
 tmp/stitched*
-tmp/test_write*
+tmp/write*
