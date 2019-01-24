@@ -7,3 +7,6 @@ Cargo.lock
 # tmp files from tests
 tmp/*signed*
 tmp/test_cut*
+tmp/replaced*
+tmp/stitched*
+tmp/test_write*
