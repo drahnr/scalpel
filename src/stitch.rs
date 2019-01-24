@@ -262,7 +262,7 @@ mod test {
 
     #[test]
     fn test_ext_bin() {
-        let name = PathBuf::from("tmp/signme.bin");
+        let name = PathBuf::from("tmp/test_sign.bin");
         let ext = check_file_format(name.as_ref()).expect("Failed to check file format");
 
         assert_eq!(ext, FileFormat::Bin);

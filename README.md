@@ -39,9 +39,9 @@ This is mostly used for the case where parts of the binary need to be extracted 
 * [alpha] sign firmware for authenticity with edcsa using the ed25519 curve
 
     ```bash
-    scalpel sign tmp/ed25519_keypair.pk8 --format pkcs8 tmp/signme.bin
-    scalpel sign tmp/ed25519_keypair.pk8 --output tmp/signme_signed.bin tmp/signme.bin
-    scalpel sign tmp/ed25519_keypair.pk8 tmp/test_bytes tmp/signme.bin
+    scalpel sign tmp/ed25519_keypair.pk8 --format pkcs8 tmp/test_sign.bin
+    scalpel sign tmp/ed25519_keypair.pk8 --output tmp/signme_signed.bin tmp/test_sign.bin
+    scalpel sign tmp/ed25519_keypair.pk8 tmp/test_bytes tmp/test_sign.bin
     ```
 
 #### Features

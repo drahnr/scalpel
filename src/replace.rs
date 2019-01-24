@@ -104,7 +104,7 @@ mod test {
     #[test]
     fn replace_a_bit_bin() {
         let input = PathBuf::from("tmp/test_bytes");
-        let replacing = PathBuf::from("tmp/signme.bin");
+        let replacing = PathBuf::from("tmp/test_sign.bin");
         let replaced = PathBuf::from("tmp/replaced");
 
         replace_file(
@@ -139,7 +139,7 @@ mod test {
     #[test]
     fn replace_a_bit_hex() {
         let input = PathBuf::from("tmp/test_bytes");
-        let replacing = PathBuf::from("tmp/signme.bin");
+        let replacing = PathBuf::from("tmp/test_sign.bin");
         let replaced = PathBuf::from("tmp/replaced.hex");
 
         replace_file(
@@ -185,7 +185,7 @@ mod test {
     #[test]
     fn try_replace_elf() {
         let input = PathBuf::from("tmp/test_bytes");
-        let replacing = PathBuf::from("tmp/signme.bin");
+        let replacing = PathBuf::from("tmp/test_sign.bin");
         let replaced = PathBuf::from("tmp/replaced.elf");
 
         let res = replace_file(
@@ -205,12 +205,12 @@ mod test {
     fn replace_a_bit_from_hex() {
         let input = PathBuf::from("tmp/test_bytes");
         let replacing = PathBuf::from("tmp/test.hex");
-        let replaced = PathBuf::from("tmp/replaced.hex");
+        let replaced = PathBuf::from("tmp/replaced1.hex");
 
         replace_file(
             replacing,
             input,
-            replaced,
+            replaced.clone(),
             0,
             630,
             FillPattern::One,
@@ -221,7 +221,7 @@ mod test {
         let buf = {
             let mut file = OpenOptions::new()
                 .read(true)
-                .open("tmp/replaced.hex")
+                .open(replaced)
                 .map_err(|err| ScalpelError::OpeningError.context(err))
                 .expect("Failed to open replaced file");
 

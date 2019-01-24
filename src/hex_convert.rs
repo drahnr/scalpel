@@ -151,7 +151,7 @@ mod test {
 
     #[test]
     fn test_write_hex() {
-        let name = PathBuf::from("tmp/test_write.hex");
+        let name = PathBuf::from("tmp/write.hex");
         let mut bytes = BytesMut::with_capacity(255);
 
         bytes.put_u64_le(1);
@@ -171,7 +171,7 @@ mod test {
 
         let mut hex_file = OpenOptions::new()
             .read(true)
-            .open("tmp/test_write.hex")
+            .open("tmp/write.hex")
             .map_err(|err| ScalpelError::OpeningError.context(err))
             .expect("Failed to open stitched file");
 

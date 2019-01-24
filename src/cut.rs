@@ -50,7 +50,7 @@ mod test {
         // compare resulting file with bytes
         let bytes: &[u8] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16];
         // write file with this content
-        let victim = PathBuf::from("tmp/test_cut");
+        let victim = PathBuf::from("tmp/cut");
         {
             let mut file_tester = OpenOptions::new()
                 .write(true)
@@ -89,7 +89,7 @@ mod test {
             25, 26, 27, 27, 29,
         ];
         // write file with this content
-        let victim = PathBuf::from("tmp/test_cut_bin");
+        let victim = PathBuf::from("tmp/cut_bin");
         {
             let mut file_tester = OpenOptions::new()
                 .write(true)
@@ -101,8 +101,8 @@ mod test {
                 .write_all(&bytes)
                 .expect("Failed to write to file");
         }
-        // cut bytes from this file
-        let output = PathBuf::from("tmp/test_cut_out.hex");
+        // cut bytes into this file
+        let output = PathBuf::from("tmp/cut_out.hex");
         cut_out_bytes(victim, output.clone(), 5, 16, FileFormat::Hex).expect("Failed to cut");
 
         // read content of output
