@@ -35,7 +35,7 @@ mod stitch;
 use byte_offset::*;
 use errors::*;
 
-const USAGE: &'static str = "
+const USAGE: &str = "
 scalpel
 
 Usage:
@@ -93,8 +93,8 @@ struct Args {
     flag_file_format: Option<stitch::FileFormat>,
 }
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-const NAME: &'static str = env!("CARGO_PKG_NAME");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+const NAME: &str = env!("CARGO_PKG_NAME");
 
 fn run() -> Result<()> {
     env_logger::init();
@@ -165,7 +165,7 @@ fn run() -> Result<()> {
         // command cut
 
         // do input handling
-        let start = args.flag_start.unwrap_or(Default::default()).as_u64(); // if none, set to 0
+        let start = args.flag_start.unwrap_or_default().as_u64(); // if none, set to 0
         let size: u64 = if let Some(end) = args.flag_end {
             if let Some(_) = args.flag_size {
                 return Err(ScalpelError::ArgumentError
@@ -183,8 +183,7 @@ fn run() -> Result<()> {
             }
             end - start
         } else if let Some(size) = args.flag_size {
-            let size = size.as_u64();
-            size
+            size.as_u64()
         } else {
             return Err(ScalpelError::ArgumentError
                 .context("Either end addr or size has to be specified")
@@ -218,7 +217,7 @@ fn run() -> Result<()> {
         Ok(())
     } else if args.cmd_replace {
         // do input handling
-        let start = args.flag_start.unwrap_or(Default::default()).as_u64(); // if none, set to 0
+        let start = args.flag_start.unwrap_or_default().as_u64(); // if none, set to 0
         let size: u64 = if let Some(end) = args.flag_end {
             if let Some(_) = args.flag_size {
                 return Err(ScalpelError::ArgumentError
@@ -236,8 +235,7 @@ fn run() -> Result<()> {
             }
             end - start
         } else if let Some(size) = args.flag_size {
-            let size = size.as_u64();
-            size
+            size.as_u64()
         } else {
             return Err(ScalpelError::ArgumentError
                 .context("Either end addr or size has to be specified")

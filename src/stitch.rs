@@ -99,13 +99,13 @@ pub fn stitch(
     fill_pattern: &FillPattern,
 ) -> Result<BytesMut> {
     if bytes.len() > *offset {
-        return Err(ScalpelError::OverlapError
+        Err(ScalpelError::OverlapError
             .context(format!(
                 "Offset {} is smaller than length {} of previous binaries",
                 offset,
                 bytes.len()
             ))
-            .into());
+            .into())
     } else {
         match fill_pattern {
             FillPattern::Zero => bytes.resize(*offset, 0x0),
@@ -129,7 +129,7 @@ pub fn write_file(path: &Path, bytes: BytesMut) -> Result<()> {
         .open(path)
         .map_err(|err| ScalpelError::OpeningError.context(format!("{}: {:?}", err, path)))?;
 
-    file.write(&bytes)?;
+    file.write_all(&bytes)?;
 
     Ok(())
 }
