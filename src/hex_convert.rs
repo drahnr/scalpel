@@ -10,7 +10,7 @@ use std::path::Path;
 use super::stitch::{stitch, FillPattern};
 
 pub fn convert_hex2bin(file_name: &Path) -> Result<BytesMut> {
-    let content = read_hex2string(file_name.as_ref())?;
+    let content = read_hex2string(file_name)?;
 
     let mut ihex_reader = Reader::new_stopping_after_error_and_eof(content.as_str(), false, true);
 

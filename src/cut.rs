@@ -29,11 +29,9 @@ pub fn cut_out_bytes(
     match file_format {
         FileFormat::Bin => write_file(Path::new(&output), out_buf),
         FileFormat::Hex => write_hex_file(Path::new(&output), out_buf),
-        _ => {
-            return Err(ScalpelError::UnknownFileFormat
-                .context(format!("unimplemented extension {:?}", file_format))
-                .into());
-        }
+        _ => Err(ScalpelError::UnknownFileFormat
+            .context(format!("unimplemented extension {:?}", file_format))
+            .into()),
     }
 }
 
