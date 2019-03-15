@@ -50,7 +50,7 @@ fn read_hex2string(name: &Path) -> Result<String> {
     Ok(buf)
 }
 
-pub fn write_hex_file(path: &Path, mut bytes: BytesMut) -> Result<()> {
+pub fn write_bin_as_hex_to_file(path: &Path, mut bytes: BytesMut) -> Result<()> {
     // let vec_content = bytes.to_vec();
 
     let byte_count = 16;
@@ -86,7 +86,7 @@ pub fn write_hex_file(path: &Path, mut bytes: BytesMut) -> Result<()> {
         .open(path)
         .map_err(|err| ScalpelError::OpeningError.context(format!("{}: {:?}", err, path)))?;
 
-    write!(file, "{}", ihex_obj)?;
+    write!(file, "{}", ihex_obj)?; // TODO write_all
 
     Ok(())
 }
@@ -147,6 +147,9 @@ mod test {
         // is there a way to test for a specific error?
         // something with assert_eq!( res, ScalpelError::HexError)
         assert!(res.is_err());
+        if let Err(e) = res {
+            assert_eq!(e, ScalpelError::HexError.into());
+        }
     }
 
     #[test]

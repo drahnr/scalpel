@@ -25,7 +25,6 @@ mod signer;
 use signer::*;
 
 mod byte_offset;
-mod concat;
 mod cut;
 mod errors;
 mod hex_convert;
@@ -41,19 +40,16 @@ scalpel
 Usage:
   scalpel cut [--fragment=<fragment>] [--start=<start>] --end=<end> --output=<output> <file> [--file-format=<format>]
   scalpel cut [--fragment=<fragment>] [--start=<start>] --size=<size> --output=<output> <file> [--file-format=<format>]
-  scalpel sign <keyfile> [--output=<output>] [--format=<format>] <file>
-  scalpel sign <keyfile> <files>...
   scalpel stitch (--binary=<binary> --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
-  scalpel replace [--start=<start>] --end=<end> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
-  scalpel replace [--start=<start>] --size=<size> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
+  scalpel graft [--start=<start>] --end=<end> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
+  scalpel graft [--start=<start>] --size=<size> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
   scalpel (-h | --help)
   scalpel (-v |--version)
 
 Commands:
   cut       extract bytes from a binary file
-  sign      sign binary with a keypair such as ED25519 or RSA
   stitch    stitchs binaries together, each file starts at <offset> with (random|one|zero) padding, accepted file formats: binary, IntelHex
-  replace   replace a section with <replace> specfied by start and end/size
+  graft   replace a section with <replace> specfied by start and end/size
 
 Options:
   -h --help                     Show this screen.
@@ -68,19 +64,19 @@ Options:
   --file-format=<format>        define output file format as either bin (default) or hex, has no influence on file ending!
 ";
 
+
+// TODO clean up stale struct member variables
 #[derive(Debug, Deserialize)]
 struct Args {
     cmd_cut: bool,
-    cmd_sign: bool,
     cmd_stitch: bool,
-    cmd_replace: bool,
+    cmd_graft: bool,
     flag_start: Option<ByteOffset>,
     flag_end: Option<ByteOffset>,
     flag_size: Option<ByteOffset>,
     flag_fragment: Option<ByteOffset>,
     flag_output: Option<PathBuf>,
     flag_binary: Vec<PathBuf>,
-    arg_keyfile: String,
     arg_file: PathBuf,
     arg_files: Vec<String>,
     arg_input: PathBuf,
@@ -96,6 +92,9 @@ struct Args {
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 const NAME: &'static str = env!("CARGO_PKG_NAME");
 
+
+// TODO use the run from traits and combine with the cmd if else and error handling but get rid of ScalpelError (maybe?)
+// TODO or use Err(...)? pattern instead
 fn run() -> Result<()> {
     env_logger::init();
 
@@ -110,57 +109,6 @@ fn run() -> Result<()> {
     } else if args.flag_help {
         println!("{}", USAGE);
         Ok(())
-    } else if args.cmd_sign {
-        // command sign
-
-        // get keys from the specified input file
-        let key_format = args.flag_format.unwrap_or("pkcs8".to_string());
-        let signer = match key_format.as_str() {
-            "pkcs8" => {
-                let key_path = &args.arg_keyfile.as_ref();
-                Signer::from_pkcs8_file(&key_path)?
-            }
-            "pem" => {
-                unimplemented!("can you suggest a parser?");
-            }
-            "generate" => Signer::random(),
-            fmt => {
-                return Err(ScalpelError::ArgumentError
-                    .context(format!("File Format not recognized {}", fmt))
-                    .into())
-            }
-        };
-
-        if args.arg_files.len() > 0 {
-            for item in args.arg_files.iter() {
-                // get signature
-                let signature = signer.calculate_signature_of_file(item)?;
-                // create signed file
-                concat::append_signature(item.as_ref(), &signature)?;
-
-                // verify
-                let signed_filename = concat::derive_output_filename(Path::new(item))?;
-                signer.verify_file(&signed_filename)?;
-                info!("signing success: \"{:?}\"", &signed_filename);
-            }
-        } else {
-            let path_victim = &args.arg_file.as_ref();
-            // get signature
-            let signature = signer.calculate_signature_of_file(path_victim)?;
-
-            // create signed file
-            concat::append_signature(path_victim, &signature)?;
-
-            // test the verification
-            let signed_filename = args
-                .flag_output
-                .unwrap_or(concat::derive_output_filename(path_victim)?);
-
-            signer.verify_file(&signed_filename)?;
-
-            info!("signing success: \"{:?}\"", signed_filename);
-        }
-        Ok(())
     } else if args.cmd_cut {
         // command cut
 
@@ -174,12 +122,7 @@ fn run() -> Result<()> {
             }
             let end = end.as_u64();
             if start >= end {
-                return Err(ScalpelError::ArgumentError
-                    .context(format!(
-                        "end addr {1} should be larger than start addr {0}",
-                        start, end
-                    ))
-                    .into());
+                Err(format_err("Sky is fallin"))?;
             }
             end - start
         } else if let Some(size) = args.flag_size {
@@ -216,7 +159,7 @@ fn run() -> Result<()> {
         )?;
 
         Ok(())
-    } else if args.cmd_replace {
+    } else if args.cmd_graft {
         // do input handling
         let start = args.flag_start.unwrap_or(Default::default()).as_u64(); // if none, set to 0
         let size: u64 = if let Some(end) = args.flag_end {
