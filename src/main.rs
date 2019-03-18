@@ -14,6 +14,7 @@ extern crate ring;
 extern crate serde;
 #[macro_use]
 extern crate common_failures;
+#[macro_use]
 extern crate failure;
 extern crate ihex;
 extern crate rand;
@@ -21,15 +22,15 @@ extern crate rand;
 use docopt::Docopt;
 use std::path::{Path, PathBuf};
 
-mod signer;
-use signer::*;
-
 mod byte_offset;
-mod cut;
+// mod cut;
 mod errors;
-mod hex_convert;
-mod replace;
-mod stitch;
+mod intelhex;
+
+mod refactored;
+use refactored::{AnnotatedBytes, FillPattern};
+// mod replace;
+// mod stitch;
 
 use byte_offset::*;
 use errors::*;
@@ -38,8 +39,8 @@ const USAGE: &'static str = "
 scalpel
 
 Usage:
-  scalpel cut [--fragment=<fragment>] [--start=<start>] --end=<end> --output=<output> <file> [--file-format=<format>]
-  scalpel cut [--fragment=<fragment>] [--start=<start>] --size=<size> --output=<output> <file> [--file-format=<format>]
+  scalpel stance [--fragment=<fragment>] [--start=<start>] --end=<end> --output=<output> <file> [--file-format=<format>]
+  scalpel stance [--fragment=<fragment>] [--start=<start>] --size=<size> --output=<output> <file> [--file-format=<format>]
   scalpel stitch (--binary=<binary> --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
   scalpel graft [--start=<start>] --end=<end> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
   scalpel graft [--start=<start>] --size=<size> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
@@ -47,8 +48,8 @@ Usage:
   scalpel (-v |--version)
 
 Commands:
-  cut       extract bytes from a binary file
-  stitch    stitchs binaries together, each file starts at <offset> with (random|one|zero) padding, accepted file formats: binary, IntelHex
+  cut     extract bytes from a binary file
+  stitch  stitchs binaries together, each file starts at <offset> with (random|one|zero) padding, accepted file formats: binary, IntelHex
   graft   replace a section with <replace> specfied by start and end/size
 
 Options:
@@ -64,11 +65,10 @@ Options:
   --file-format=<format>        define output file format as either bin (default) or hex, has no influence on file ending!
 ";
 
-
 // TODO clean up stale struct member variables
 #[derive(Debug, Deserialize)]
 struct Args {
-    cmd_cut: bool,
+    cmd_stance: bool,
     cmd_stitch: bool,
     cmd_graft: bool,
     flag_start: Option<ByteOffset>,
@@ -76,22 +76,19 @@ struct Args {
     flag_size: Option<ByteOffset>,
     flag_fragment: Option<ByteOffset>,
     flag_output: Option<PathBuf>,
-    flag_binary: Vec<PathBuf>,
     arg_file: PathBuf,
     arg_files: Vec<String>,
     arg_input: PathBuf,
     flag_offset: Vec<ByteOffset>,
-    flag_fill_pattern: Option<stitch::FillPattern>,
+    flag_fill_pattern: Option<FillPattern>,
     flag_format: Option<String>,
     flag_replace: PathBuf,
     flag_version: bool,
     flag_help: bool,
-    flag_file_format: Option<stitch::FileFormat>,
 }
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 const NAME: &'static str = env!("CARGO_PKG_NAME");
-
 
 // TODO use the run from traits and combine with the cmd if else and error handling but get rid of ScalpelError (maybe?)
 // TODO or use Err(...)? pattern instead

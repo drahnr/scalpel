@@ -7,7 +7,7 @@ use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::path::Path;
 
-use super::stitch::{stitch, FillPattern};
+use super::refactored::FillPattern;
 
 pub fn convert_hex2bin(file_name: &Path) -> Result<BytesMut> {
     let content = read_hex2string(file_name.as_ref())?;
