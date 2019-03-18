@@ -1,4 +1,4 @@
-use super::hex_convert::convert_hex2bin;
+use super::intelhex::convert_hex2bin;
 use byte_offset::*;
 use bytes::BytesMut;
 use errors::*;
@@ -32,26 +32,29 @@ enum MetaInfo {
 
 #[derive(Debug,Clone)]
 struct AnnotatedBytes {
+    // TODO reconsider name, they're not really annotaded anymore?
     pub bytes : BytesMut,
 }
 
 
 impl AnnotatedBytes {
-    pub fn save(path : Path, meta_in : MetaInfo) -> Result<()> {
-        match self.meta {
+    pub fn save(&self, path : Path, meta_in : MetaInfo) -> Result<()> {
+        match meta_in {
             MetaInfo::Bin => {
                 let mut file = OpenOptions::new()
                     .truncate(true)
                     .write(true)
                     .create(true)
                     .open(path)?;
-                // :)
-                // TODO write bytes to file
+                
+                file.write_all(self.bytes)?;
             }
             MetaInfo::IntelHex => {
                 intelhex::write_bin_as_hex_to_file(path, self.bytes)?;
             }
         }
+
+        Ok(())
     }
 
     pub fn load(path : Path, meta_out : MetaInfo) -> Result<Self> {
@@ -60,8 +63,13 @@ impl AnnotatedBytes {
                 let mut file = OpenOptions::new()
                     .read(true)
                     .open(path)?;
-                // :)
-                // TODO read bytes from file
+                let mut bytes = BytesMut::new();
+                file.read_all(bytes);
+
+                AnnotatedBytes {
+                    bytes
+                }
+                
             }
             MetaInfo::IntelHex => {
                 AnnotatedBytes {
@@ -138,9 +146,6 @@ impl AnnotatedBytes {
         Ok(())
     }
 }
-
-
-// annby.cut().and_then(|x| {x.convert_to() }).or_else(|x| { x.convert_to().and_then(|x| {x.cut()} )})?
 
 
 struct TestDataGraft {
