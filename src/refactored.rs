@@ -1,4 +1,4 @@
-use super::intelhex::convert_hex2bin;
+use super::intelhex::{convert_hex2bin, write_bin_as_hex_to_file};
 use byte_offset::*;
 use bytes::BytesMut;
 use errors::*;
@@ -21,8 +21,6 @@ impl Default for FillPattern {
 }
 
 
-
-
 #[derive(Debug,Clone,Copy)]
 enum MetaInfo {
     IntelHex,
@@ -31,14 +29,20 @@ enum MetaInfo {
 
 
 #[derive(Debug,Clone)]
-struct AnnotatedBytes {
+pub struct AnnotatedBytes {
     // TODO reconsider name, they're not really annotaded anymore?
     pub bytes : BytesMut,
 }
 
 
 impl AnnotatedBytes {
-    pub fn save(&self, path : Path, meta_in : MetaInfo) -> Result<()> {
+    pub fn new() -> Self {
+        AnnotatedBytes {
+            bytes: BytesMut::new(),
+        }
+    }
+
+    pub fn save(&self, path : &Path, meta_in : MetaInfo) -> Result<()> {
         match meta_in {
             MetaInfo::Bin => {
                 let mut file = OpenOptions::new()
@@ -47,34 +51,34 @@ impl AnnotatedBytes {
                     .create(true)
                     .open(path)?;
                 
-                file.write_all(self.bytes)?;
+                file.write_all(&self.bytes)?;
             }
             MetaInfo::IntelHex => {
-                intelhex::write_bin_as_hex_to_file(path, self.bytes)?;
+                write_bin_as_hex_to_file(path, self.bytes)?;
             }
         }
 
         Ok(())
     }
 
-    pub fn load(path : Path, meta_out : MetaInfo) -> Result<Self> {
+    pub fn load(path : &Path, meta_out : MetaInfo) -> Result<Self> {
         match meta_out {
             MetaInfo::Bin => {
                 let mut file = OpenOptions::new()
                     .read(true)
                     .open(path)?;
-                let mut bytes = BytesMut::new();
-                file.read_all(bytes);
+                let mut bytes = std::vec::new();
+                file.read_to_end(&mut bytes);
 
-                AnnotatedBytes {
-                    bytes
-                }
+                Ok(AnnotatedBytes {
+                    bytes : BytesMut::from(bytes),
+                })
                 
             }
             MetaInfo::IntelHex => {
-                AnnotatedBytes {
-                    bytes : intelhex::convert_hex2bin(path)?,
-                }
+                Ok(AnnotatedBytes {
+                    bytes : convert_hex2bin(path)?,
+                })
             }
         }
     }
@@ -83,26 +87,28 @@ impl AnnotatedBytes {
 
 impl AnnotatedBytes {
 
-    pub fn stance(&mut self, start: ByteOffset, size : ByteOffset) -> Result<()> {
-
+    // pub fn stance(&mut self, start: ByteOffset, size : ByteOffset) -> Result<()> {
+    // convertion ByteOffset -> u64 currently done in main, keep it that way?
+    pub fn stance(&mut self, start: u64, size : u64) -> Result<()> {
+        
         // split file in part before and after start index
-        self.bytes = self.bytes.split_off(start.as_usize() - 1);
+        self.bytes = self.bytes.split_off(start as usize - 1);
         // split off everything after size
-        self.bytes.split_off(size.as_usize());
+        self.bytes.split_off(size as usize);
         Ok(())
     }
 
     pub fn stitch(
-        files: Vec<(AnnotatedBytes, ByteOffset)>,
+        files: Vec<(AnnotatedBytes, usize)>,
         fill_pattern: FillPattern,
         meta_out : MetaInfo,
     ) -> Result<AnnotatedBytes> {
 
         files
             .iter()
-            .try_fold(AnnotatedBytes::empty(MetaInfo::Bin), |stitched, (elem, offset)| {
+            .try_fold(AnnotatedBytes::new(), |stitched, (elem, offset)| {
                 // before reading, check file ending
-                let content = elem.convert_to(MetaInfo::Bin)?;
+                // let content = elem.convert_to(MetaInfo::Bin)?;
 
                 match fill_pattern {
                     FillPattern::Zero => stitched.bytes.resize(*offset, 0x00),
@@ -113,13 +119,13 @@ impl AnnotatedBytes {
                         stitched.bytes.extend_from_slice(&padding);
                     }
                 }
-                stitched.bytes.extend_from_slice(&new);
+                stitched.bytes.extend_from_slice(&elem.bytes);
                 Ok(stitched)
-            })
+            })  
     }
 
     pub fn graft(&mut self, replace : AnnotatedBytes, start: ByteOffset, size : ByteOffset, fill_pattern : FillPattern) -> Result<()> {
-        // [ prefix replaceme postfix]
+        // [ prefix replacement postfix]
 
         // split file in part before and after start index
         let mut output = self.bytes.clone();
@@ -184,37 +190,37 @@ fn graft_everything() {
 
 
 
-fn run() -> Result<()> {
+// fn run() -> Result<()> {
 
-    // read
+//     // read
 
-    let meta_out = unimplemented!();
-    let meta_in = unimplemented!();
+//     let meta_out = unimplemented!();
+//     let meta_in = unimplemented!();
     
-    let bytes_in = unimplemented!();
+//     let bytes_in = unimplemented!();
 
-    let mut work = AnnotatedBytes::load(args.path_in, meta_in);
+//     let mut work = AnnotatedBytes::load(args.path_in, meta_in);
 
-    match cmd {
-        "stance" => {
-            work.stance()?;
-        },
-        "graft" => {
-            work.graft()?;
-        },
-        "stitch" => {
-            work = AnnotatedBytes::stitch(args.files, args.fill_pattern)?;
-        },
-        "convert" => { 
-        },
-        _ => Err(format_err!("Noooope")),
-    }
+//     match cmd {
+//         "stance" => {
+//             work.stance()?;
+//         },
+//         "graft" => {
+//             work.graft()?;
+//         },
+//         "stitch" => {
+//             work = AnnotatedBytes::stitch(args.files, args.fill_pattern)?;
+//         },
+//         "convert" => { 
+//         },
+//         _ => Err(format_err!("Noooope")),
+//     }
 
-    work.save(args.path_out, meta_out)?;
+//     work.save(args.path_out, meta_out)?;
 
-    Ok(())
-}
+//     Ok(())
+// }
 
 
 
-quick_main!(run);
+// quick_main!(run);

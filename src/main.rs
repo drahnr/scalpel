@@ -106,41 +106,32 @@ fn run() -> Result<()> {
     } else if args.flag_help {
         println!("{}", USAGE);
         Ok(())
-    } else if args.cmd_cut {
-        // command cut
+    } else if args.cmd_stance {
+        // command stance
 
         // do input handling
         let start = args.flag_start.unwrap_or(Default::default()).as_u64(); // if none, set to 0
         let size: u64 = if let Some(end) = args.flag_end {
             if let Some(_) = args.flag_size {
-                return Err(ScalpelError::ArgumentError
-                    .context("Either end or size has to be specified, not both")
-                    .into());
+                return Err(format_err!("Either end or size has to be specified, not both"));
             }
             let end = end.as_u64();
             if start >= end {
-                Err(format_err("Sky is fallin"))?;
+                return Err(format_err!("Start must not be greater than end"));
             }
             end - start
         } else if let Some(size) = args.flag_size {
             let size = size.as_u64();
             size
         } else {
-            return Err(ScalpelError::ArgumentError
-                .context("Either end addr or size has to be specified")
-                .into());
+            return Err(format_err!("Either end addr or size has to be specified"));
         };
         // let fragment_size = args.flag_fragment.unwrap_or(Default::default()).as_u64(); // CHUNK 8192 from cut
 
-        cut::cut_out_bytes(
-            args.arg_file,
-            args.flag_output.unwrap(),
-            start,
-            size,
-            // fragment_size as usize,
-            args.flag_file_format.unwrap_or_default(),
-        )
-        .and_then(|_| {
+        let meta_out = unimplemented!();
+        let in_bytes = AnnotatedBytes::load(args.arg_file, meta_out)?;
+
+        in_bytes.stance(start, size).and_then(|_| {
             info!("Cutting success");
             Ok(())
         })
