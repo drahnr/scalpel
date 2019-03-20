@@ -129,7 +129,7 @@ fn run() -> Result<()> {
         // let fragment_size = args.flag_fragment.unwrap_or(Default::default()).as_u64(); // CHUNK 8192 from cut
 
         let meta_out = unimplemented!();
-        let in_bytes = AnnotatedBytes::load(args.arg_file, meta_out)?;
+        let in_bytes = AnnotatedBytes::load(&args.arg_file, meta_out)?;
 
         in_bytes.stance(start, size).and_then(|_| {
             info!("Cutting success");

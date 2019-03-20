@@ -3,7 +3,7 @@ use regex::{Captures, Regex};
 use serde::de;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Magnitude {
     Unit,
     K,
@@ -12,6 +12,54 @@ pub enum Magnitude {
     Mi,
     G,
     Gi,
+}
+
+impl std::cmp::PartialOrd for Magnitude {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl std::cmp::Ord for Magnitude {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        match (self, other) {
+            (Magnitude::Unit, Magnitude::Unit) => std::cmp::Ordering::Equal,
+            (Magnitude::Unit, _) => std::cmp::Ordering::Less,
+
+            (Magnitude::K, Magnitude::Unit) => std::cmp::Ordering::Greater,
+            (Magnitude::K, Magnitude::K) => std::cmp::Ordering::Equal,
+            (Magnitude::K, _) => std::cmp::Ordering::Less,
+
+            (Magnitude::Ki, Magnitude::Unit) => std::cmp::Ordering::Greater,
+            (Magnitude::Ki, Magnitude::K) => std::cmp::Ordering::Greater,
+            (Magnitude::Ki, Magnitude::Ki) => std::cmp::Ordering::Equal,
+            (Magnitude::Ki, _) => std::cmp::Ordering::Less,
+
+            (Magnitude::M, Magnitude::Unit) => std::cmp::Ordering::Greater,
+            (Magnitude::M, Magnitude::K) => std::cmp::Ordering::Greater,
+            (Magnitude::M, Magnitude::Ki) => std::cmp::Ordering::Greater,
+            (Magnitude::M, Magnitude::M) => std::cmp::Ordering::Equal,
+            (Magnitude::M, _) => std::cmp::Ordering::Less,
+
+            (Magnitude::Mi, Magnitude::Unit) => std::cmp::Ordering::Greater,
+            (Magnitude::Mi, Magnitude::K) => std::cmp::Ordering::Greater,
+            (Magnitude::Mi, Magnitude::Ki) => std::cmp::Ordering::Greater,
+            (Magnitude::Mi, Magnitude::M) => std::cmp::Ordering::Greater,
+            (Magnitude::Mi, Magnitude::Mi) => std::cmp::Ordering::Equal,
+            (Magnitude::Mi, _) => std::cmp::Ordering::Less,
+
+            (Magnitude::G, Magnitude::Unit) => std::cmp::Ordering::Greater,
+            (Magnitude::G, Magnitude::K) => std::cmp::Ordering::Greater,
+            (Magnitude::G, Magnitude::Ki) => std::cmp::Ordering::Greater,
+            (Magnitude::G, Magnitude::M) => std::cmp::Ordering::Greater,
+            (Magnitude::G, Magnitude::Mi) => std::cmp::Ordering::Greater,
+            (Magnitude::G, Magnitude::G) => std::cmp::Ordering::Equal,
+            (Magnitude::G, _) => std::cmp::Ordering::Less,
+
+            (Magnitude::Gi, Magnitude::Gi) => std::cmp::Ordering::Equal,
+            (Magnitude::Gi, _) => std::cmp::Ordering::Greater,
+        }
+    }
 }
 
 impl Default for Magnitude {
@@ -126,6 +174,13 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
             }
         }
         deserializer.deserialize_str(ByteOffsetVisitor)
+    }
+}
+
+impl std::ops::Sub for ByteOffset {
+    type Output = Self;
+    fn sub(self, RHS: Self) -> Self::Output {
+        unimplemented!("FIXME")
     }
 }
 
