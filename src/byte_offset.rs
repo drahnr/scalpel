@@ -105,6 +105,22 @@ impl Magnitude {
     }
 }
 
+
+impl fmt::Display for Magnitude {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let printable_mag = match *self {
+            Magnitude::Unit => "",
+            Magnitude::K => "KB",
+            Magnitude::Ki => "KiB",
+            Magnitude::M => "MB",
+            Magnitude::Mi => "MiB",
+            Magnitude::G => "GB",
+            Magnitude::Gi => "GiB",
+        };
+        write!(f, "{}", printable_mag)
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct ByteOffset {
     num: u64,
@@ -179,10 +195,22 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
 
 impl std::ops::Sub for ByteOffset {
     type Output = Self;
-    fn sub(self, RHS: Self) -> Self::Output {
-        unimplemented!("FIXME")
+    fn sub(self, RHS: Self) -> Self {
+        let num = self.as_u64() - RHS.as_u64();
+        // result has always magnitude Unit, we'd need a from_u64()
+        // to parse from u64 into suitable magnitude?
+        ByteOffset {
+            num, magnitude: Magnitude::Unit,
+        }   
     }
 }
+
+impl fmt::Display for ByteOffset {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}{}", self.num, self.magnitude)
+    }
+}
+
 
 // Old Stuff
 // fn deserialize_suffix( n: &str) -> Result<u64>
