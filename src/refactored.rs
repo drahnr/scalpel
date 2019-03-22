@@ -5,7 +5,8 @@ use errors::*;
 use rand::Rng;
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
+use std::vec::Vec;
 
 #[derive(Deserialize, Debug)]
 pub enum FillPattern {
@@ -20,20 +21,17 @@ impl Default for FillPattern {
     }
 }
 
-
-#[derive(Debug,Clone,Copy)]
-enum MetaInfo {
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub enum MetaInfo {
     IntelHex,
-    Bin
+    Bin,
 }
 
-
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct AnnotatedBytes {
-    // TODO reconsider name, they're not really annotaded anymore?
-    pub bytes : BytesMut,
+    // TODO: reconsider name, they're not really annotated anymore?
+    pub bytes: BytesMut,
 }
-
 
 impl AnnotatedBytes {
     pub fn new() -> Self {
@@ -42,15 +40,15 @@ impl AnnotatedBytes {
         }
     }
 
-    pub fn save(&self, path : &Path, meta_in : MetaInfo) -> Result<()> {
-        match meta_in {
+    pub fn save(self, path: &Path, meta_out: MetaInfo) -> Result<()> {
+        match meta_out {
             MetaInfo::Bin => {
                 let mut file = OpenOptions::new()
                     .truncate(true)
                     .write(true)
                     .create(true)
                     .open(path)?;
-                
+
                 file.write_all(&self.bytes)?;
             }
             MetaInfo::IntelHex => {
