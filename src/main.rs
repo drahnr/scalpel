@@ -106,53 +106,71 @@ fn run() -> Result<()> {
         // command stance
 
         // do input handling
-        let start = args.flag_start.unwrap_or(Default::default()).as_u64(); // if none, set to 0
-        let size: u64 = if let Some(end) = args.flag_end {
+        let start = args.flag_start.unwrap_or(Default::default()); // if none, set to 0
+        let size: ByteOffset = if let Some(end) = args.flag_end {
             if let Some(_) = args.flag_size {
-                return Err(format_err!("Either end or size has to be specified, not both"));
+                return Err(format_err!(
+                    "Either end or size has to be specified, not both"
+                ));
             }
-            let end = end.as_u64();
             if start >= end {
                 return Err(format_err!("Start must not be greater than end"));
             }
             end - start
         } else if let Some(size) = args.flag_size {
-            let size = size.as_u64();
             size
         } else {
             return Err(format_err!("Either end addr or size has to be specified"));
         };
         // let fragment_size = args.flag_fragment.unwrap_or(Default::default()).as_u64(); // CHUNK 8192 from cut
 
-        let meta_out = unimplemented!();
-        let in_bytes = AnnotatedBytes::load(&args.arg_file, meta_out)?;
+        // guess meta_in from file
+        let meta_in = unimplemented!();
+
+        let mut in_bytes = AnnotatedBytes::load(&args.arg_input, meta_in)?;
 
         in_bytes.stance(start, size).and_then(|_| {
             info!("Cutting success");
             Ok(())
-        })
+        });
+
+        let meta_out = args.flag_file_format.unwrap_or(meta_in);
+        in_bytes.save(&args.flag_output, meta_out)?;
+
+        Ok(())
     } else if args.cmd_stitch {
         // command stitch binaries together
 
-        stitch::stitch_files(
-            args.flag_binary,
-            args.flag_offset,
-            args.flag_output.unwrap(),
-            args.flag_fill_pattern.unwrap_or_default(),
-            args.flag_file_format.unwrap_or_default(),
-        )?;
+        // guess from files
+        let meta_in : MetaInfo = MetaInfo::Bin;
+        
+        // construct vec <(AnnoBytes, offsets)>
+        let stitch_vec: Vec<(AnnotatedBytes, ByteOffset)> = args.flag_files
+            .into_iter()
+            .map(|f| {
+                let meta_in : MetaInfo = unimplemented!();
+                // TODO: get rid of unwrap
+                AnnotatedBytes::load(&f, meta_in).unwrap()
+            })
+            .zip(args.flag_offset.into_iter())
+            .collect();
+
+        let out_bytes = AnnotatedBytes::stitch(stitch_vec, args.flag_fill_pattern.unwrap_or_default())?;
+        
+        //  impl default for Metainfo
+        let meta_out = args.flag_file_format.unwrap_or(meta_in);
+        out_bytes.save(&args.flag_output, meta_out)?;
 
         Ok(())
     } else if args.cmd_graft {
         // do input handling
-        let start = args.flag_start.unwrap_or(Default::default()).as_u64(); // if none, set to 0
-        let size: u64 = if let Some(end) = args.flag_end {
+        let start = args.flag_start.unwrap_or(Default::default()); // if none, set to 0
+        let size : ByteOffset = if let Some(end) = args.flag_end {
             if let Some(_) = args.flag_size {
                 return Err(ScalpelError::ArgumentError
                     .context("Either end or size has to be specified, not both")
                     .into());
             }
-            let end = end.as_u64();
             if start >= end {
                 return Err(ScalpelError::ArgumentError
                     .context(format!(
@@ -163,7 +181,6 @@ fn run() -> Result<()> {
             }
             end - start
         } else if let Some(size) = args.flag_size {
-            let size = size.as_u64();
             size
         } else {
             return Err(ScalpelError::ArgumentError
@@ -171,15 +188,21 @@ fn run() -> Result<()> {
                 .into());
         };
 
-        replace::replace_file(
-            args.flag_replace,
-            args.arg_input,
-            args.flag_output.unwrap(),
+        let meta_in = unimplemented!();
+
+        let mut in_bytes = AnnotatedBytes::load(&args.arg_input, meta_in)?;
+        let graft_bytes = AnnotatedBytes::load(&args.flag_replace, meta_in)?;
+
+        in_bytes.graft(
+            graft_bytes,
             start,
             size,
             args.flag_fill_pattern.unwrap_or_default(),
-            args.flag_file_format.unwrap_or_default(),
         )?;
+
+        //  impl default for Metainfo
+        let meta_out = args.flag_file_format.unwrap_or(meta_in);
+        in_bytes.save(&args.flag_output, meta_out)?;
 
         Ok(())
     } else {
