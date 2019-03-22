@@ -197,11 +197,23 @@ impl std::ops::Sub for ByteOffset {
     type Output = Self;
     fn sub(self, RHS: Self) -> Self {
         let num = self.as_u64() - RHS.as_u64();
-        // result has always magnitude Unit, we'd need a from_u64()
+        // output has always magnitude Unit, we'd need a from_u64()
         // to parse from u64 into suitable magnitude?
         ByteOffset {
             num, magnitude: Magnitude::Unit,
-        }   
+        }
+    }
+}
+
+impl std::ops::Add for ByteOffset {
+    type Output = Self;
+    fn add(self, RHS: Self) -> Self {
+        let num = self.as_u64() + RHS.as_u64();
+        // output has always magnitude Unit, we'd need a from_u64()
+        // to parse from u64 into suitable magnitude?
+        ByteOffset {
+            num, magnitude: Magnitude::Unit,
+        }
     }
 }
 
@@ -211,6 +223,11 @@ impl fmt::Display for ByteOffset {
     }
 }
 
+impl std::cmp::Ord for ByteOffset {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.as_u64().cmp(&other.as_u64())
+    }
+}
 
 // Old Stuff
 // fn deserialize_suffix( n: &str) -> Result<u64>
