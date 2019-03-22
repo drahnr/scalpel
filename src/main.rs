@@ -20,7 +20,7 @@ extern crate ihex;
 extern crate rand;
 
 use docopt::Docopt;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 mod byte_offset;
 // mod cut;
@@ -28,7 +28,7 @@ mod errors;
 mod intelhex;
 
 mod refactored;
-use refactored::{AnnotatedBytes, FillPattern};
+use refactored::{AnnotatedBytes, FillPattern, MetaInfo};
 // mod replace;
 // mod stitch;
 
@@ -39,28 +39,26 @@ const USAGE: &'static str = "
 scalpel
 
 Usage:
-  scalpel stance [--fragment=<fragment>] [--start=<start>] --end=<end> --output=<output> <file> [--file-format=<format>]
-  scalpel stance [--fragment=<fragment>] [--start=<start>] --size=<size> --output=<output> <file> [--file-format=<format>]
-  scalpel stitch (--binary=<binary> --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
+  scalpel stance [--start=<start>] --end=<end> --output=<output> <input> [--file-format=<format>]
+  scalpel stance [--start=<start>] --size=<size> --output=<output> <input> [--file-format=<format>]
+  scalpel stitch (--files=<files> --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
   scalpel graft [--start=<start>] --end=<end> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
   scalpel graft [--start=<start>] --size=<size> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
   scalpel (-h | --help)
   scalpel (-v |--version)
 
 Commands:
-  cut     extract bytes from a binary file
+  stance     extract bytes from a binary file
   stitch  stitchs binaries together, each file starts at <offset> with (random|one|zero) padding, accepted file formats: binary, IntelHex
   graft   replace a section with <replace> specfied by start and end/size
 
 Options:
   -h --help                     Show this screen.
   -v --version                  Show version.
-  --start=<start>               Start byte offset of the section to cut out. If omitted, set to 0.
+  --start=<start>               Start byte offset of the section to stance/graft. If omitted, set to 0.
   --end=<end>                   The end byte offset which will not be included.
   --size=<size>                 Alternate way to sepcify the <end> combined with start.
-  --fragment=<fragment>         Define the size of the fragment/chunk to read/write at once. [Default: 8192]
-  --format=<format>             Specify the key format, eihter pkcs8, pem, bytes or new
-  --fill-pattern=<fill_patern>  Specify padding style for stitching (random|one|zero)
+  --fill-pattern=<fill_patern>  Specify padding style for stitching files (random|one|zero)
   --replace=<replace>           File which replaces the original part
   --file-format=<format>        define output file format as either bin (default) or hex, has no influence on file ending!
 ";
@@ -71,17 +69,15 @@ struct Args {
     cmd_stance: bool,
     cmd_stitch: bool,
     cmd_graft: bool,
+    arg_input: PathBuf,
     flag_start: Option<ByteOffset>,
     flag_end: Option<ByteOffset>,
     flag_size: Option<ByteOffset>,
-    flag_fragment: Option<ByteOffset>,
-    flag_output: Option<PathBuf>,
-    arg_file: PathBuf,
-    arg_files: Vec<String>,
-    arg_input: PathBuf,
+    flag_files: Vec<PathBuf>,
     flag_offset: Vec<ByteOffset>,
+    flag_output: PathBuf,
     flag_fill_pattern: Option<FillPattern>,
-    flag_format: Option<String>,
+    flag_file_format: Option<MetaInfo>,
     flag_replace: PathBuf,
     flag_version: bool,
     flag_help: bool,
