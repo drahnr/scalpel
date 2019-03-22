@@ -121,7 +121,7 @@ impl fmt::Display for Magnitude {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq, Eq)]
 pub struct ByteOffset {
     num: u64,
     magnitude: Magnitude,
@@ -220,6 +220,12 @@ impl std::ops::Add for ByteOffset {
 impl fmt::Display for ByteOffset {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}{}", self.num, self.magnitude)
+    }
+}
+
+impl std::cmp::PartialOrd for ByteOffset {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
     }
 }
 
