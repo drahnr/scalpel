@@ -20,12 +20,12 @@ pub fn convert_hex2bin(file_name: &Path) -> Result<BytesMut> {
 
 fn hex_record2bin(record: Record, binary: BytesMut) -> Result<BytesMut> {
     let bin = match record {
-        Record::Data { value, offset } => stitch(
-            binary,
-            BytesMut::from(value),
-            &(offset as usize),
-            &FillPattern::Zero,
-        )?,
+        Record::Data { value, offset } => {
+            let bin = BytesMut::new();
+            bin.resize(offset as usize, 0x00);
+            bin.extend_from_slice(&value[..]);
+            bin
+        }
         Record::EndOfFile => binary,
         _ => {
             return Err(ScalpelError::HexError
@@ -147,9 +147,6 @@ mod test {
         // is there a way to test for a specific error?
         // something with assert_eq!( res, ScalpelError::HexError)
         assert!(res.is_err());
-        if let Err(e) = res {
-            assert_eq!(e, ScalpelError::HexError.into());
-        }
     }
 
     #[test]
@@ -170,7 +167,7 @@ mod test {
         bytes.put_u64_le(11);
         bytes.put_u64_le(254);
 
-        write_hex_file(name.as_ref(), bytes).expect("Failed to write bytes to hex file");
+        write_bin_as_hex_to_file(name.as_ref(), bytes).expect("Failed to write bytes to hex file");
 
         let mut hex_file = OpenOptions::new()
             .read(true)
