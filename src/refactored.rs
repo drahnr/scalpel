@@ -59,91 +59,96 @@ impl AnnotatedBytes {
         Ok(())
     }
 
-    pub fn load(path : &Path, meta_out : MetaInfo) -> Result<Self> {
-        match meta_out {
+    pub fn load(path: &Path, meta_in: MetaInfo) -> Result<Self> {
+        match meta_in {
             MetaInfo::Bin => {
-                let mut file = OpenOptions::new()
-                    .read(true)
-                    .open(path)?;
-                let mut bytes = std::vec::new();
+                let mut file = OpenOptions::new().read(true).open(path)?;
+                let mut bytes = Vec::new();
                 file.read_to_end(&mut bytes);
 
                 Ok(AnnotatedBytes {
-                    bytes : BytesMut::from(bytes),
-                })
-                
-            }
-            MetaInfo::IntelHex => {
-                Ok(AnnotatedBytes {
-                    bytes : convert_hex2bin(path)?,
+                    bytes: BytesMut::from(bytes),
                 })
             }
+            MetaInfo::IntelHex => Ok(AnnotatedBytes {
+                bytes: convert_hex2bin(path)?,
+            }),
         }
     }
-}
 
-
-impl AnnotatedBytes {
-
-    // pub fn stance(&mut self, start: ByteOffset, size : ByteOffset) -> Result<()> {
-    // convertion ByteOffset -> u64 currently done in main, keep it that way?
-    pub fn stance(&mut self, start: u64, size : u64) -> Result<()> {
-        
+    pub fn stance(&mut self, start: ByteOffset, size: ByteOffset) -> Result<()> {
         // split file in part before and after start index
-        self.bytes = self.bytes.split_off(start as usize - 1);
+        self.bytes = self.bytes.split_off(start.as_usize() - 1);
         // split off everything after size
-        self.bytes.split_off(size as usize);
+        self.bytes.split_off(size.as_usize());
+        
+        // we don't need any return? there is no result here at all
         Ok(())
     }
 
     pub fn stitch(
-        files: Vec<(AnnotatedBytes, usize)>,
+        mut files: Vec<(AnnotatedBytes, ByteOffset)>,
         fill_pattern: FillPattern,
-        meta_out : MetaInfo,
+        // meta_out : MetaInfo, // we don't even need this here
     ) -> Result<AnnotatedBytes> {
+        // TODO: sort Vec<bytes, offset> by offset
+        files.sort_by_key(move |x| x.1);
 
         files
-            .iter()
-            .try_fold(AnnotatedBytes::new(), |stitched, (elem, offset)| {
-                // before reading, check file ending
-                // let content = elem.convert_to(MetaInfo::Bin)?;
-
+            .into_iter()
+            .try_fold(AnnotatedBytes::new(), |mut stitched, (elem, offset)| {
+                // check if offset is greater than length
+                if stitched.bytes.len() > offset.as_usize() {
+                    return Err(format_err!(
+                        "Offset {} smaller than file {}",
+                        offset,
+                        stitched.bytes.len()
+                    ));
+                }
                 match fill_pattern {
-                    FillPattern::Zero => stitched.bytes.resize(*offset, 0x00),
-                    FillPattern::One => stitched.bytes.resize(*offset, 0xFF),
+                    FillPattern::Zero => stitched.bytes.resize(offset.as_usize(), 0x00),
+                    FillPattern::One => stitched.bytes.resize(offset.as_usize(), 0xFF),
                     FillPattern::Random => {
-                        let mut padding = vec![0; *offset - stitched.bytes.len()];
+                        let mut padding = vec![0; offset.as_usize() - stitched.bytes.len()];
                         ::rand::thread_rng().try_fill(&mut padding[..])?;
                         stitched.bytes.extend_from_slice(&padding);
                     }
                 }
                 stitched.bytes.extend_from_slice(&elem.bytes);
                 Ok(stitched)
-            })  
+            })
     }
 
-    pub fn graft(&mut self, replace : AnnotatedBytes, start: ByteOffset, size : ByteOffset, fill_pattern : FillPattern) -> Result<()> {
-        // [ prefix replacement postfix]
+    pub fn graft(
+        &mut self,
+        replace: AnnotatedBytes,
+        start: ByteOffset,
+        size: ByteOffset,
+        fill_pattern: FillPattern,
+    ) -> Result<()> {
+        // [prefix replacement postfix]
 
-        // split file in part before and after start index
         let mut output = self.bytes.clone();
-        let after = output.split_off(start);
+        // split file in part before and after start index
+        let after = output.split_off(start.as_usize());
 
         output.extend_from_slice(&replace.bytes);
 
+        // TODO: check sizes?
+
         // fill missing bytes
         match fill_pattern {
-            FillPattern::Zero => output.resize(before.len() + size, 0x0),
-            FillPattern::One => output.resize(before.len() + size, 0xFF),
+            FillPattern::Zero => output.resize(output.len() + size.as_usize(), 0x0),
+            FillPattern::One => output.resize(output.len() + size.as_usize(), 0xFF),
             FillPattern::Random => {
-                let mut padding = vec![0; size - replace.bytes.len()];
+                let mut padding = vec![0; size.as_usize() - replace.bytes.len()];
                 ::rand::thread_rng().try_fill(&mut padding[..])?;
                 output.extend_from_slice(&padding);
             }
         }
 
         // append the end
-        output.extend_from_slice(&after[size..]);
+        output.extend_from_slice(&after[size.as_usize()..]);
 
         self.bytes = output;
 
@@ -151,42 +156,31 @@ impl AnnotatedBytes {
     }
 }
 
+// struct TestDataGraft {
+//     idx: usize,
+//     datasets: Vec<()>,
+// }
 
-struct TestDataGraft {
-    idx : usize,
-    datasets : Vec<()>,
-}
+// impl TestDataGraft {
+//     pub fn new() -> Self {
+//         Self {
+//             idx: 0,
+//             datasets: vec![(), (), ()],
+//         }
+//     }
+// }
 
-impl TestDataGraft {
-    pub fn new() -> Self {
-        Self {
-            idx : 0,
-            datasets : vec![
-                (),
-                (),
-                (),
-            ]
-        }
-    }
-}
+// impl Iterator for X {
+//     type Item = (input, expected_output);
+//     fn next() -> Option<Self::Item> {}
+// }
 
-impl Iterator for X {
-    type Item = (input, expected_output);
-    fn next() -> Option<Self::Item> {
-
-    }
-}
-
-
-
-#[test]
-fn graft_everything() {
-    for item in X::new() {
-        item.graft();
-    }
-}
-
-
+// #[test]
+// fn graft_everything() {
+//     for item in X::new() {
+//         item.graft();
+//     }
+// }
 
 // fn run() -> Result<()> {
 
@@ -194,7 +188,7 @@ fn graft_everything() {
 
 //     let meta_out = unimplemented!();
 //     let meta_in = unimplemented!();
-    
+
 //     let bytes_in = unimplemented!();
 
 //     let mut work = AnnotatedBytes::load(args.path_in, meta_in);
@@ -209,7 +203,7 @@ fn graft_everything() {
 //         "stitch" => {
 //             work = AnnotatedBytes::stitch(args.files, args.fill_pattern)?;
 //         },
-//         "convert" => { 
+//         "convert" => {
 //         },
 //         _ => Err(format_err!("Noooope")),
 //     }
@@ -218,7 +212,5 @@ fn graft_everything() {
 
 //     Ok(())
 // }
-
-
 
 // quick_main!(run);
