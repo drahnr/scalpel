@@ -92,7 +92,7 @@ impl AnnotatedBytes {
         // meta_out : MetaInfo, // we don't even need this here
     ) -> Result<AnnotatedBytes> {
         // TODO: sort Vec<bytes, offset> by offset
-        files.sort_by_key(move |x| x.1);
+        files.sort_by_key(|x| x.1);
 
         files
             .into_iter()

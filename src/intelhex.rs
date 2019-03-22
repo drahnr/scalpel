@@ -28,7 +28,7 @@ fn hex_record2bin(record: Record, binary: BytesMut) -> Result<BytesMut> {
         _ => {
             return Err(ScalpelError::HexError
                 .context(format!("Unknown Record Type {:?}", record))
-                .into())
+                .into());
         }
     };
 

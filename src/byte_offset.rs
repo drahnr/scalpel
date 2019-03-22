@@ -105,7 +105,6 @@ impl Magnitude {
     }
 }
 
-
 impl fmt::Display for Magnitude {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let printable_mag = match *self {
@@ -200,7 +199,8 @@ impl std::ops::Sub for ByteOffset {
         // output has always magnitude Unit, we'd need a from_u64()
         // to parse from u64 into suitable magnitude?
         ByteOffset {
-            num, magnitude: Magnitude::Unit,
+            num,
+            magnitude: Magnitude::Unit,
         }
     }
 }
@@ -212,7 +212,8 @@ impl std::ops::Add for ByteOffset {
         // output has always magnitude Unit, we'd need a from_u64()
         // to parse from u64 into suitable magnitude?
         ByteOffset {
-            num, magnitude: Magnitude::Unit,
+            num,
+            magnitude: Magnitude::Unit,
         }
     }
 }

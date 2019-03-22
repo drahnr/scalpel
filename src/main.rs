@@ -142,21 +142,23 @@ fn run() -> Result<()> {
         // command stitch binaries together
 
         // guess from files
-        let meta_in : MetaInfo = MetaInfo::Bin;
-        
+        let meta_in: MetaInfo = MetaInfo::Bin;
+
         // construct vec <(AnnoBytes, offsets)>
-        let stitch_vec: Vec<(AnnotatedBytes, ByteOffset)> = args.flag_files
+        let stitch_vec: Vec<(AnnotatedBytes, ByteOffset)> = args
+            .flag_files
             .into_iter()
             .map(|f| {
-                let meta_in : MetaInfo = unimplemented!();
+                let meta_in: MetaInfo = unimplemented!();
                 // TODO: get rid of unwrap
                 AnnotatedBytes::load(&f, meta_in).unwrap()
             })
             .zip(args.flag_offset.into_iter())
             .collect();
 
-        let out_bytes = AnnotatedBytes::stitch(stitch_vec, args.flag_fill_pattern.unwrap_or_default())?;
-        
+        let out_bytes =
+            AnnotatedBytes::stitch(stitch_vec, args.flag_fill_pattern.unwrap_or_default())?;
+
         //  impl default for Metainfo
         let meta_out = args.flag_file_format.unwrap_or(meta_in);
         out_bytes.save(&args.flag_output, meta_out)?;
@@ -165,7 +167,7 @@ fn run() -> Result<()> {
     } else if args.cmd_graft {
         // do input handling
         let start = args.flag_start.unwrap_or(Default::default()); // if none, set to 0
-        let size : ByteOffset = if let Some(end) = args.flag_end {
+        let size: ByteOffset = if let Some(end) = args.flag_end {
             if let Some(_) = args.flag_size {
                 return Err(ScalpelError::ArgumentError
                     .context("Either end or size has to be specified, not both")
