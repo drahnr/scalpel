@@ -7,8 +7,6 @@ use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::path::Path;
 
-use super::refactored::FillPattern;
-
 pub fn convert_hex2bin(file_name: &Path) -> Result<BytesMut> {
     let content = read_hex2string(file_name.as_ref())?;
 
@@ -21,7 +19,7 @@ pub fn convert_hex2bin(file_name: &Path) -> Result<BytesMut> {
 fn hex_record2bin(record: Record, binary: BytesMut) -> Result<BytesMut> {
     let bin = match record {
         Record::Data { value, offset } => {
-            let bin = BytesMut::new();
+            let mut bin = BytesMut::new();
             bin.resize(offset as usize, 0x00);
             bin.extend_from_slice(&value[..]);
             bin
