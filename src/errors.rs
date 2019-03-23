@@ -18,12 +18,6 @@ pub enum ScalpelError {
     #[fail(display = "Failed to resolve Path")]
     PathError,
 
-    #[fail(display = "Failed to parse Keys from .pk8")]
-    ParsePk8Error,
-
-    #[fail(display = "There is no key in this Signer yet")]
-    KeyInitError,
-
     #[fail(display = "Content of file is not as expected")]
     ContentError,
 
