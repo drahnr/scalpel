@@ -64,7 +64,7 @@ impl AnnotatedBytes {
             MetaInfo::Bin => {
                 let mut file = OpenOptions::new().read(true).open(path)?;
                 let mut bytes = Vec::new();
-                file.read_to_end(&mut bytes);
+                file.read_to_end(&mut bytes)?;
 
                 Ok(AnnotatedBytes {
                     bytes: BytesMut::from(bytes),
@@ -81,7 +81,7 @@ impl AnnotatedBytes {
         self.bytes = self.bytes.split_off(start.as_usize() - 1);
         // split off everything after size
         self.bytes.split_off(size.as_usize());
-        
+
         // we don't need any return? there is no result here at all
         Ok(())
     }
@@ -92,7 +92,7 @@ impl AnnotatedBytes {
         // meta_out : MetaInfo, // we don't even need this here
     ) -> Result<AnnotatedBytes> {
         // TODO: sort Vec<bytes, offset> by offset
-        files.sort_by_key(|x| x.1);
+        files.sort_by(|a, b| a.1.cmp(&b.1));
 
         files
             .into_iter()
@@ -133,13 +133,14 @@ impl AnnotatedBytes {
         let after = output.split_off(start.as_usize());
 
         output.extend_from_slice(&replace.bytes);
+        let curr_len = output.len();
 
         // TODO: check sizes?
 
         // fill missing bytes
         match fill_pattern {
-            FillPattern::Zero => output.resize(output.len() + size.as_usize(), 0x0),
-            FillPattern::One => output.resize(output.len() + size.as_usize(), 0xFF),
+            FillPattern::Zero => output.resize(curr_len + size.as_usize(), 0x0),
+            FillPattern::One => output.resize(curr_len + size.as_usize(), 0xFF),
             FillPattern::Random => {
                 let mut padding = vec![0; size.as_usize() - replace.bytes.len()];
                 ::rand::thread_rng().try_fill(&mut padding[..])?;
