@@ -162,7 +162,7 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
 
                 let byte_offset = REGEX
                     .captures(value)
-                    .ok_or(Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
+                    .ok_or(Err::<Captures, ScalpelError>(ScalpelError::ParsingError { // TODO: get rid off ScalpelError
                         r: "".to_string(),
                     }))
                     .and_then(|captures| {
@@ -170,12 +170,12 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
                             let num_str = &captures[1];
                             let magnitude_str = &captures[2];
                             let num: u64 = num_str.parse::<u64>().map_err(|e| {
-                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
+                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError { // TODO: get rid off ScalpelError
                                     r: format!("Failed to parse u64 {}", e),
                                 })
                             })?;
                             let magnitude = Magnitude::parse(magnitude_str).map_err(|e| {
-                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
+                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError { // TODO: get rid off ScalpelError
                                     r: format!("Failed to parse magnitude {}", e),
                                 })
                             })?;
@@ -194,8 +194,8 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
 
 impl std::ops::Sub for ByteOffset {
     type Output = Self;
-    fn sub(self, RHS: Self) -> Self {
-        let num = self.as_u64() - RHS.as_u64();
+    fn sub(self, rhs: Self) -> Self {
+        let num = self.as_u64() - rhs.as_u64();
         // output has always magnitude Unit, we'd need a from_u64()
         // to parse from u64 into suitable magnitude?
         ByteOffset {
@@ -207,8 +207,8 @@ impl std::ops::Sub for ByteOffset {
 
 impl std::ops::Add for ByteOffset {
     type Output = Self;
-    fn add(self, RHS: Self) -> Self {
-        let num = self.as_u64() + RHS.as_u64();
+    fn add(self, rhs: Self) -> Self {
+        let num = self.as_u64() + rhs.as_u64();
         // output has always magnitude Unit, we'd need a from_u64()
         // to parse from u64 into suitable magnitude?
         ByteOffset {

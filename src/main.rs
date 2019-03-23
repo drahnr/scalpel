@@ -129,10 +129,7 @@ fn run() -> Result<()> {
 
         let mut in_bytes = AnnotatedBytes::load(&args.arg_input, meta_in)?;
 
-        in_bytes.stance(start, size).and_then(|_| {
-            info!("Cutting success");
-            Ok(())
-        });
+        in_bytes.stance(start, size)?;
 
         let meta_out = args.flag_file_format.unwrap_or(meta_in);
         in_bytes.save(&args.flag_output, meta_out)?;
@@ -169,25 +166,19 @@ fn run() -> Result<()> {
         let start = args.flag_start.unwrap_or(Default::default()); // if none, set to 0
         let size: ByteOffset = if let Some(end) = args.flag_end {
             if let Some(_) = args.flag_size {
-                return Err(ScalpelError::ArgumentError
-                    .context("Either end or size has to be specified, not both")
-                    .into());
+                return Err(format_err!("Either end or size has to be specified, not both"));
             }
             if start >= end {
-                return Err(ScalpelError::ArgumentError
-                    .context(format!(
+                return Err(format_err!(
                         "end addr {1} should be larger than start addr {0}",
                         start, end
-                    ))
-                    .into());
+                    ));
             }
             end - start
         } else if let Some(size) = args.flag_size {
             size
         } else {
-            return Err(ScalpelError::ArgumentError
-                .context("Either end addr or size has to be specified")
-                .into());
+            return Err(format_err!("Either end addr or size has to be specified"));
         };
 
         let meta_in = unimplemented!();
@@ -208,9 +199,7 @@ fn run() -> Result<()> {
 
         Ok(())
     } else {
-        Err(ScalpelError::ArgumentError
-            .context("No idea what you were thinking..")
-            .into())
+        Err(format_err!("No idea what you were thinking.."))
     }
 }
 
