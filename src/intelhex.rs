@@ -26,9 +26,7 @@ fn hex_record2bin(record: Record, binary: BytesMut) -> Result<BytesMut> {
         }
         Record::EndOfFile => binary,
         _ => {
-            return Err(ScalpelError::HexError
-                .context(format!("Unknown Record Type {:?}", record))
-                .into());
+            return Err(format_err!("Unknown Record Type {:?}", record));
         }
     };
 
@@ -39,7 +37,7 @@ fn read_hex2string(name: &Path) -> Result<String> {
     let mut file = OpenOptions::new()
         .read(true)
         .open(name)
-        .map_err(|err| ScalpelError::OpeningError.context(format!("{}: {:?}", err, name)))?;
+        .map_err(|err| format_err!("Failed to open {:?}: {}", name, err))?;
 
     let mut buf = String::new();
     file.read_to_string(&mut buf)?;
@@ -82,9 +80,9 @@ pub fn write_bin_as_hex_to_file(path: &Path, mut bytes: BytesMut) -> Result<()> 
         .truncate(true)
         .create(true)
         .open(path)
-        .map_err(|err| ScalpelError::OpeningError.context(format!("{}: {:?}", err, path)))?;
+        .map_err(|err| format_err!("Failed to open {:?}: {}", path, err))?;
 
-    write!(file, "{}", ihex_obj)?; // TODO write_all
+    file.write_all(ihex_obj.as_bytes())?;
 
     Ok(())
 }
