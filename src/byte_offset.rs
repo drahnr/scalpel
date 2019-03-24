@@ -1,4 +1,4 @@
-use errors::*;
+use crate::errors::*;
 use regex::{Captures, Regex};
 use serde::de;
 use std::fmt;
@@ -162,7 +162,8 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
 
                 let byte_offset = REGEX
                     .captures(value)
-                    .ok_or(Err::<Captures, ScalpelError>(ScalpelError::ParsingError { // TODO: get rid off ScalpelError
+                    .ok_or_else(|| Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
+                        // TODO: get rid off ScalpelError
                         r: "".to_string(),
                     }))
                     .and_then(|captures| {
@@ -170,12 +171,14 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
                             let num_str = &captures[1];
                             let magnitude_str = &captures[2];
                             let num: u64 = num_str.parse::<u64>().map_err(|e| {
-                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError { // TODO: get rid off ScalpelError
+                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
+                                    // TODO: get rid off ScalpelError
                                     r: format!("Failed to parse u64 {}", e),
                                 })
                             })?;
                             let magnitude = Magnitude::parse(magnitude_str).map_err(|e| {
-                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError { // TODO: get rid off ScalpelError
+                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
+                                    // TODO: get rid off ScalpelError
                                     r: format!("Failed to parse magnitude {}", e),
                                 })
                             })?;

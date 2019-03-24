@@ -1,12 +1,13 @@
-use super::intelhex::{convert_hex2bin, write_bin_as_hex_to_file};
-use byte_offset::*;
+use crate::byte_offset::*;
+use crate::errors::*;
+use crate::intelhex::{convert_hex2bin, write_bin_as_hex_to_file};
 use bytes::BytesMut;
-use errors::*;
 use rand::Rng;
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::path::Path;
 use std::vec::Vec;
+use tree_magic;
 
 #[derive(Deserialize, Debug)]
 pub enum FillPattern {
@@ -25,6 +26,30 @@ impl Default for FillPattern {
 pub enum MetaInfo {
     IntelHex,
     Bin,
+}
+
+impl Default for MetaInfo {
+    fn default() -> Self {
+        MetaInfo::Bin
+    }
+}
+
+impl MetaInfo {
+    pub fn from_content(first_bytes: &[u8]) -> Result<MetaInfo> {
+        match tree_magic::from_u8(first_bytes).as_str() {
+            "binary" => Ok(MetaInfo::Bin),
+            "ascii/text" => Ok(MetaInfo::IntelHex), // TODO actually attempt to parse maybe?
+            _ => Err(format_err!("Unsupported error type")),
+        }
+    }
+    pub fn from_file_extension(path: &Path) -> Result<MetaInfo> {
+        match path.extension().and_then(|ext| ext.to_str()) {
+            Some("bin") => Ok(MetaInfo::Bin),
+            Some("hex") => Ok(MetaInfo::IntelHex),
+            Some(ext) => Err(format_err!("Unsupported file extension {}", ext)),
+            None => Err(format_err!("File does not have an extension to guess")),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

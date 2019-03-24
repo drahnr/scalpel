@@ -19,6 +19,8 @@ extern crate failure;
 extern crate ihex;
 extern crate rand;
 
+extern crate tree_magic;
+
 use docopt::Docopt;
 use std::path::PathBuf;
 
@@ -32,8 +34,10 @@ use refactored::{AnnotatedBytes, FillPattern, MetaInfo};
 // mod replace;
 // mod stitch;
 
-use byte_offset::*;
-use errors::*;
+use crate::byte_offset::*;
+use crate::errors::*;
+
+use std::borrow::Borrow;
 
 const USAGE: &'static str = "
 scalpel
@@ -106,7 +110,7 @@ fn run() -> Result<()> {
         // command stance
 
         // do input handling
-        let start = args.flag_start.unwrap_or(Default::default()); // if none, set to 0
+        let start = args.flag_start.unwrap_or_default(); // if none, set to 0
         let size: ByteOffset = if let Some(end) = args.flag_end {
             if let Some(_) = args.flag_size {
                 return Err(format_err!(
@@ -122,7 +126,7 @@ fn run() -> Result<()> {
         } else {
             return Err(format_err!("Either end addr or size has to be specified"));
         };
-        // let fragment_size = args.flag_fragment.unwrap_or(Default::default()).as_u64(); // CHUNK 8192 from cut
+        // let fragment_size = args.flag_fragment.unwrap_or_default().as_u64(); // CHUNK 8192 from cut
 
         // guess meta_in from file
         let meta_in = unimplemented!();
@@ -138,18 +142,24 @@ fn run() -> Result<()> {
     } else if args.cmd_stitch {
         // command stitch binaries together
 
-        // guess from files
-        let meta_in: MetaInfo = MetaInfo::Bin;
-
         // construct vec <(AnnoBytes, offsets)>
-        let stitch_vec: Vec<(AnnotatedBytes, ByteOffset)> = args
-            .flag_files
+        let stitch_vec = args.flag_files.into_iter().try_fold(
+            Vec::<AnnotatedBytes>::with_capacity(10),
+            |mut collection, path| {
+                let meta_in: MetaInfo =
+                    MetaInfo::from_file_extension(&path).or_else::<Error, _>(|_err: Error| {
+                        let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
+                        Ok(mi)
+                    })?;
+
+                let bytes = AnnotatedBytes::load(&path, meta_in)?;
+                collection.push(bytes);
+                Ok::<_, Error>(collection)
+            },
+        )?;
+
+        let stitch_vec = stitch_vec
             .into_iter()
-            .map(|f| {
-                let meta_in: MetaInfo = unimplemented!();
-                // TODO: get rid of unwrap
-                AnnotatedBytes::load(&f, meta_in).unwrap()
-            })
             .zip(args.flag_offset.into_iter())
             .collect();
 
@@ -157,22 +167,25 @@ fn run() -> Result<()> {
             AnnotatedBytes::stitch(stitch_vec, args.flag_fill_pattern.unwrap_or_default())?;
 
         //  impl default for Metainfo
-        let meta_out = args.flag_file_format.unwrap_or(meta_in);
+        let meta_out = args.flag_file_format.unwrap_or_default();
         out_bytes.save(&args.flag_output, meta_out)?;
 
         Ok(())
     } else if args.cmd_graft {
         // do input handling
-        let start = args.flag_start.unwrap_or(Default::default()); // if none, set to 0
+        let start = args.flag_start.unwrap_or_default(); // if none, set to 0
         let size: ByteOffset = if let Some(end) = args.flag_end {
             if let Some(_) = args.flag_size {
-                return Err(format_err!("Either end or size has to be specified, not both"));
+                return Err(format_err!(
+                    "Either end or size has to be specified, not both"
+                ));
             }
             if start >= end {
                 return Err(format_err!(
-                        "end addr {1} should be larger than start addr {0}",
-                        start, end
-                    ));
+                    "end addr {1} should be larger than start addr {0}",
+                    start,
+                    end
+                ));
             }
             end - start
         } else if let Some(size) = args.flag_size {
