@@ -42,6 +42,14 @@ impl MetaInfo {
             _ => Err(format_err!("Unsupported error type")),
         }
     }
+    /// TODO: Alternative impl of from_content, takes a path directly instead of reading the first bytes
+    pub fn from_content_alt(path: &Path) -> Result<MetaInfo> {
+        match tree_magic::from_filepath(path).as_str() {
+            "binary" => Ok(MetaInfo::Bin),
+            "Ascii/text" => Ok(MetaInfo::IntelHex),
+            _ => Err(format_err!("Unspupported File Type")),
+        }
+    }
     pub fn from_file_extension(path: &Path) -> Result<MetaInfo> {
         match path.extension().and_then(|ext| ext.to_str()) {
             Some("bin") => Ok(MetaInfo::Bin),
