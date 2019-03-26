@@ -96,7 +96,7 @@ mod test {
     #[test]
     fn test_read_string() {
         let file = PathBuf::from("Cargo.toml");
-        let mut string = read_hex2string(file).expect("Failed to read file");
+        let mut string = read_hex2string(file.as_ref()).expect("Failed to read file");
 
         string.truncate(9);
 

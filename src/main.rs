@@ -128,11 +128,18 @@ fn run() -> Result<()> {
         };
         // let fragment_size = args.flag_fragment.unwrap_or_default().as_u64(); // CHUNK 8192 from cut
 
+        let path = args.arg_input;
         // guess meta_in from file
-        let meta_in = unimplemented!();
+        let meta_in: MetaInfo =
+                    MetaInfo::from_file_extension(&path).or_else::<Error, _>(|_err: Error| {
+                        // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
+                        let mi: MetaInfo = MetaInfo::from_content_alt(&path)?;
+                        Ok(mi)
+                    })?;
 
-        let mut in_bytes = AnnotatedBytes::load(&args.arg_input, meta_in)?;
+        let mut in_bytes = AnnotatedBytes::load(&path, meta_in)?;
 
+        // FIXME: derive clone for ByteOffset and do start.clone()?
         in_bytes.stance(start, size)?;
 
         let meta_out = args.flag_file_format.unwrap_or(meta_in);
@@ -148,7 +155,8 @@ fn run() -> Result<()> {
             |mut collection, path| {
                 let meta_in: MetaInfo =
                     MetaInfo::from_file_extension(&path).or_else::<Error, _>(|_err: Error| {
-                        let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
+                        // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
+                        let mi: MetaInfo = MetaInfo::from_content_alt(&path)?;
                         Ok(mi)
                     })?;
 
@@ -194,10 +202,23 @@ fn run() -> Result<()> {
             return Err(format_err!("Either end addr or size has to be specified"));
         };
 
-        let meta_in = unimplemented!();
+        let path_in = args.arg_input;
+        let path_graft = args.flag_replace;
+        // guess meta_in from file
+        let meta_in: MetaInfo =
+                    MetaInfo::from_file_extension(&path_in).or_else::<Error, _>(|_err: Error| {
+                        // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
+                        let mi: MetaInfo = MetaInfo::from_content_alt(&path_in)?;
+                        Ok(mi)
+                    })?;
+        let meta_graft: MetaInfo = MetaInfo::from_file_extension(&path_graft).or_else::<Error, _>(|_err: Error| {
+                        // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
+                        let mi: MetaInfo = MetaInfo::from_content_alt(&path_graft)?;
+                        Ok(mi)
+                    })?;
 
-        let mut in_bytes = AnnotatedBytes::load(&args.arg_input, meta_in)?;
-        let graft_bytes = AnnotatedBytes::load(&args.flag_replace, meta_in)?;
+        let mut in_bytes = AnnotatedBytes::load(&path_in, meta_in)?;
+        let graft_bytes = AnnotatedBytes::load(&path_graft, meta_graft)?;
 
         in_bytes.graft(
             graft_bytes,
