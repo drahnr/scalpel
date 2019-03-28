@@ -1,5 +1,4 @@
 use crate::byte_offset::*;
-use crate::errors::*;
 use crate::intelhex::{convert_hex2bin, write_bin_as_hex_to_file};
 use bytes::BytesMut;
 use rand::Rng;
@@ -8,6 +7,10 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::vec::Vec;
 use tree_magic;
+
+use failure::Error;
+
+pub type Result<X> = std::result::Result<X, Error>;
 
 #[derive(Deserialize, Debug)]
 pub enum FillPattern {

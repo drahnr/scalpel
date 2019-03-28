@@ -1,7 +1,10 @@
-use crate::errors::*;
 use regex::{Captures, Regex};
 use serde::de;
 use std::fmt;
+use failure::Error;
+
+use super::refactored::Result;
+
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Magnitude {
@@ -80,10 +83,7 @@ impl Magnitude {
             "Gi" => Ok(Magnitude::Gi),
             _ => {
                 debug!("No idea what to do with {} as magnitude ", mag_str);
-                Err(ScalpelError::ParsingError {
-                    r: format!("Unknown Magnitude {}", mag_str),
-                }
-                .into())
+                Err(format_err!("Unknown Magnitude {}", mag_str))
             }
         }
     }
@@ -162,25 +162,16 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
 
                 let byte_offset = REGEX
                     .captures(value)
-                    .ok_or_else(|| Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
-                        // TODO: get rid off ScalpelError
-                        r: "".to_string(),
-                    }))
+                    .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse value")))
                     .and_then(|captures| {
                         if captures.len() == 3 {
                             let num_str = &captures[1];
                             let magnitude_str = &captures[2];
                             let num: u64 = num_str.parse::<u64>().map_err(|e| {
-                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
-                                    // TODO: get rid off ScalpelError
-                                    r: format!("Failed to parse u64 {}", e),
-                                })
+                                Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
                             })?;
                             let magnitude = Magnitude::parse(magnitude_str).map_err(|e| {
-                                Err::<Captures, ScalpelError>(ScalpelError::ParsingError {
-                                    // TODO: get rid off ScalpelError
-                                    r: format!("Failed to parse magnitude {}", e),
-                                })
+                                Err::<Captures, Error>(format_err!("Failed to parse magnitude {}", e))
                             })?;
                             Ok(ByteOffset::new(num, magnitude))
                         } else {

@@ -24,18 +24,15 @@ extern crate tree_magic;
 use docopt::Docopt;
 use std::path::PathBuf;
 
+use failure::Error;
+
 mod byte_offset;
-// mod cut;
-mod errors;
 mod intelhex;
 
 mod refactored;
-use refactored::{AnnotatedBytes, FillPattern, MetaInfo};
-// mod replace;
-// mod stitch;
+use refactored::{AnnotatedBytes, FillPattern, MetaInfo, Result};
 
 use crate::byte_offset::*;
-use crate::errors::*;
 
 use std::borrow::Borrow;
 
@@ -90,8 +87,6 @@ struct Args {
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 const NAME: &'static str = env!("CARGO_PKG_NAME");
 
-// TODO use the run from traits and combine with the cmd if else and error handling but get rid of ScalpelError (maybe?)
-// TODO or use Err(...)? pattern instead
 fn run() -> Result<()> {
     env_logger::init();
 

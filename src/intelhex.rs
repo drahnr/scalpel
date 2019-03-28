@@ -1,4 +1,3 @@
-use crate::errors::*;
 use bytes::BytesMut;
 use ihex::reader::Reader;
 use ihex::record::*;
@@ -6,6 +5,7 @@ use ihex::writer;
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::path::Path;
+use super::refactored::Result;
 
 pub fn convert_hex2bin(file_name: &Path) -> Result<BytesMut> {
     let content = read_hex2string(file_name)?;
@@ -168,7 +168,7 @@ mod test {
         let mut hex_file = OpenOptions::new()
             .read(true)
             .open("tmp/test_write.hex")
-            .map_err(|err| ScalpelError::OpeningError.context(err))
+            .map_err(|err| format_err!("{}", err))
             .expect("Failed to open stitched file");
 
         let mut content = String::new();
