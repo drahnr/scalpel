@@ -3,7 +3,7 @@ use serde::de;
 use std::fmt;
 use failure::Error;
 
-use super::refactored::Result;
+use crate::refactored::Result;
 
 
 #[derive(Debug, PartialEq, Eq, Clone)]

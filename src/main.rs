@@ -30,11 +30,9 @@ mod byte_offset;
 mod intelhex;
 
 mod refactored;
-use refactored::{AnnotatedBytes, FillPattern, MetaInfo, Result};
+use crate::refactored::{AnnotatedBytes, FillPattern, MetaInfo, Result};
 
 use crate::byte_offset::*;
-
-use std::borrow::Borrow;
 
 const USAGE: &'static str = "
 scalpel
