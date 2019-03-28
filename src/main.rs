@@ -118,22 +118,22 @@ fn run() -> Result<()> {
         } else {
             return Err(format_err!("Either end addr or size has to be specified"));
         };
-        // let fragment_size = args.flag_fragment.unwrap_or_default().as_u64(); // CHUNK 8192 from cut
 
-        let path = args.arg_input;
         // guess meta_in from file
-        let meta_in: MetaInfo =
-                    MetaInfo::from_file_extension(&path).or_else::<Error, _>(|_err: Error| {
-                        // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
-                        let mi: MetaInfo = MetaInfo::from_content_alt(&path)?;
-                        Ok(mi)
-                    })?;
+        let path = args.arg_input;
+        let meta_in = MetaInfo::from_file_extension(&path).or_else::<Error, _>(|_err: Error| {
+            // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
+            // Ok(mi)
+            MetaInfo::from_content_alt(&path)
+        })?;
 
+        // load the input file
         let mut in_bytes = AnnotatedBytes::load(&path, meta_in)?;
 
-        // FIXME: derive clone for ByteOffset and do start.clone()?
+        // do the cutting
         in_bytes.stance(start, size)?;
 
+        // save output file
         let meta_out = args.flag_file_format.unwrap_or(meta_in);
         in_bytes.save(&args.flag_output, meta_out)?;
 
@@ -141,32 +141,35 @@ fn run() -> Result<()> {
     } else if args.cmd_stitch {
         // command stitch binaries together
 
-        // construct vec <(AnnoBytes, offsets)>
+        // construct vec <AnnotatedBytes>
         let stitch_vec = args.flag_files.into_iter().try_fold(
-            Vec::<AnnotatedBytes>::with_capacity(10),
+            // Vec::<AnnotatedBytes>::with_capacity(10),
+            Vec::<AnnotatedBytes>::new(),
             |mut collection, path| {
                 let meta_in: MetaInfo =
                     MetaInfo::from_file_extension(&path).or_else::<Error, _>(|_err: Error| {
                         // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
-                        let mi: MetaInfo = MetaInfo::from_content_alt(&path)?;
-                        Ok(mi)
+                        // Ok(mi)
+                        MetaInfo::from_content_alt(&path)
                     })?;
-
                 let bytes = AnnotatedBytes::load(&path, meta_in)?;
                 collection.push(bytes);
                 Ok::<_, Error>(collection)
             },
         )?;
 
+        // construct vec <(AnnotatedBytes, ByteOffset)>
         let stitch_vec = stitch_vec
             .into_iter()
             .zip(args.flag_offset.into_iter())
             .collect();
 
+        // do the stitching
         let out_bytes =
             AnnotatedBytes::stitch(stitch_vec, args.flag_fill_pattern.unwrap_or_default())?;
 
-        //  impl default for Metainfo
+        // save stitched output file
+        // for consistent behaviour, should we also use the first meta_in as meta_out?
         let meta_out = args.flag_file_format.unwrap_or_default();
         out_bytes.save(&args.flag_output, meta_out)?;
 
@@ -194,24 +197,27 @@ fn run() -> Result<()> {
             return Err(format_err!("Either end addr or size has to be specified"));
         };
 
+        // guess meta_in from files
         let path_in = args.arg_input;
         let path_graft = args.flag_replace;
-        // guess meta_in from file
         let meta_in: MetaInfo =
-                    MetaInfo::from_file_extension(&path_in).or_else::<Error, _>(|_err: Error| {
-                        // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
-                        let mi: MetaInfo = MetaInfo::from_content_alt(&path_in)?;
-                        Ok(mi)
-                    })?;
-        let meta_graft: MetaInfo = MetaInfo::from_file_extension(&path_graft).or_else::<Error, _>(|_err: Error| {
-                        // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
-                        let mi: MetaInfo = MetaInfo::from_content_alt(&path_graft)?;
-                        Ok(mi)
-                    })?;
+            MetaInfo::from_file_extension(&path_in).or_else::<Error, _>(|_err: Error| {
+                // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
+                // Ok(mi)
+                MetaInfo::from_content_alt(&path_in)
+            })?;
+        let meta_graft: MetaInfo =
+            MetaInfo::from_file_extension(&path_graft).or_else::<Error, _>(|_err: Error| {
+                // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
+                // Ok(mi)
+                MetaInfo::from_content_alt(&path_graft)
+            })?;
 
+        // open input files
         let mut in_bytes = AnnotatedBytes::load(&path_in, meta_in)?;
         let graft_bytes = AnnotatedBytes::load(&path_graft, meta_graft)?;
 
+        // put graft_bytes into in_bytes
         in_bytes.graft(
             graft_bytes,
             start,
@@ -219,7 +225,7 @@ fn run() -> Result<()> {
             args.flag_fill_pattern.unwrap_or_default(),
         )?;
 
-        //  impl default for Metainfo
+        // save output file
         let meta_out = args.flag_file_format.unwrap_or(meta_in);
         in_bytes.save(&args.flag_output, meta_out)?;
 
