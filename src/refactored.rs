@@ -112,14 +112,11 @@ impl AnnotatedBytes {
         }
     }
 
-    pub fn stance(&mut self, start: ByteOffset, size: ByteOffset) -> Result<()> {
+    pub fn stance(&mut self, start: ByteOffset, size: ByteOffset) {
         // split file in part before and after start index
         self.bytes = self.bytes.split_off(start.as_usize() - 1);
         // split off everything after size
         self.bytes.split_off(size.as_usize());
-
-        // we don't need any return? there is no result here at all
-        Ok(())
     }
 
     pub fn stitch(

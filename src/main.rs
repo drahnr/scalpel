@@ -131,7 +131,7 @@ fn run() -> Result<()> {
         let mut in_bytes = AnnotatedBytes::load(&path, meta_in)?;
 
         // do the cutting
-        in_bytes.stance(start, size)?;
+        in_bytes.stance(start, size);
 
         // save output file
         let meta_out = args.flag_file_format.unwrap_or(meta_in);
