@@ -38,16 +38,16 @@ const USAGE: &'static str = "
 scalpel
 
 Usage:
-  scalpel stance [--start=<start>] --end=<end> --output=<output> <input> [--file-format=<format>]
+  scalpel stance [--start=<start>] --end=<end>   --output=<output> <input> [--file-format=<format>]
   scalpel stance [--start=<start>] --size=<size> --output=<output> <input> [--file-format=<format>]
-  scalpel stitch (--files=<files> --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
-  scalpel graft [--start=<start>] --end=<end> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
-  scalpel graft [--start=<start>] --size=<size> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
+  scalpel stitch (--files=<files>  --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
+  scalpel graft  [--start=<start>] --end=<end>   --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
+  scalpel graft  [--start=<start>] --size=<size> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
   scalpel (-h | --help)
   scalpel (-v |--version)
 
 Commands:
-  stance     extract bytes from a binary file
+  stance  extract bytes from a binary file
   stitch  stitchs binaries together, each file starts at <offset> with (random|one|zero) padding, accepted file formats: binary, IntelHex
   graft   replace a section with <replace> specfied by start and end/size
 
@@ -62,7 +62,6 @@ Options:
   --file-format=<format>        define output file format as either bin (default) or hex, has no influence on file ending!
 ";
 
-// TODO clean up stale struct member variables
 #[derive(Debug, Deserialize)]
 struct Args {
     cmd_stance: bool,
