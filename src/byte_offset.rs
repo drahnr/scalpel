@@ -3,7 +3,7 @@ use regex::{Captures, Regex};
 use serde::de;
 use std::fmt;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Magnitude {
     Unit,
     K,
@@ -120,7 +120,7 @@ impl fmt::Display for Magnitude {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub struct ByteOffset {
     num: u64,
     magnitude: Magnitude,

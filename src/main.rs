@@ -120,7 +120,7 @@ fn run() -> Result<()> {
             if start >= end {
                 return Err(format_err!("Start must not be greater than end"));
             }
-            end - start
+            end - start.clone()
         } else if let Some(size) = args.flag_size {
             size
         } else {
@@ -195,7 +195,7 @@ fn run() -> Result<()> {
                     end
                 ));
             }
-            end - start
+            end - start.clone()
         } else if let Some(size) = args.flag_size {
             size
         } else {
