@@ -122,9 +122,7 @@ impl AnnotatedBytes {
     pub fn stitch(
         mut files: Vec<(AnnotatedBytes, ByteOffset)>,
         fill_pattern: FillPattern,
-        // meta_out : MetaInfo, // we don't even need this here
     ) -> Result<AnnotatedBytes> {
-        // TODO: sort Vec<bytes, offset> by offset
         files.sort_by(|a, b| a.1.cmp(&b.1));
 
         files
@@ -133,7 +131,7 @@ impl AnnotatedBytes {
                 // check if offset is greater than length
                 if stitched.bytes.len() > offset.as_usize() {
                     return Err(format_err!(
-                        "Offset {} smaller than file {}",
+                        "Offset {} smaller than current file {}",
                         offset,
                         stitched.bytes.len()
                     ));
@@ -215,36 +213,3 @@ impl AnnotatedBytes {
 //         item.graft();
 //     }
 // }
-
-// fn run() -> Result<()> {
-
-//     // read
-
-//     let meta_out = unimplemented!();
-//     let meta_in = unimplemented!();
-
-//     let bytes_in = unimplemented!();
-
-//     let mut work = AnnotatedBytes::load(args.path_in, meta_in);
-
-//     match cmd {
-//         "stance" => {
-//             work.stance()?;
-//         },
-//         "graft" => {
-//             work.graft()?;
-//         },
-//         "stitch" => {
-//             work = AnnotatedBytes::stitch(args.files, args.fill_pattern)?;
-//         },
-//         "convert" => {
-//         },
-//         _ => Err(format_err!("Noooope")),
-//     }
-
-//     work.save(args.path_out, meta_out)?;
-
-//     Ok(())
-// }
-
-// quick_main!(run);

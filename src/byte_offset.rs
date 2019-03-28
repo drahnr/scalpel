@@ -1,10 +1,9 @@
+use failure::Error;
 use regex::{Captures, Regex};
 use serde::de;
 use std::fmt;
-use failure::Error;
 
 use crate::refactored::Result;
-
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Magnitude {
@@ -171,7 +170,10 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
                                 Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
                             })?;
                             let magnitude = Magnitude::parse(magnitude_str).map_err(|e| {
-                                Err::<Captures, Error>(format_err!("Failed to parse magnitude {}", e))
+                                Err::<Captures, Error>(format_err!(
+                                    "Failed to parse magnitude {}",
+                                    e
+                                ))
                             })?;
                             Ok(ByteOffset::new(num, magnitude))
                         } else {
