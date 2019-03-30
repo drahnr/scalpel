@@ -113,8 +113,10 @@ impl AnnotatedBytes {
     }
 
     pub fn stance(&mut self, start: ByteOffset, size: ByteOffset) {
-        // split file in part before and after start index
-        self.bytes = self.bytes.split_off(start.as_usize() - 1);
+        if start.as_usize() > 0usize {
+            // split file in part before and after start index
+            self.bytes = self.bytes.split_off(start.as_usize() - 1);
+        }
         // split off everything after size
         self.bytes.split_off(size.as_usize());
     }
