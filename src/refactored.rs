@@ -165,15 +165,19 @@ impl AnnotatedBytes {
         // split file in part before and after start index
         let after = output.split_off(start.as_usize());
 
-        output.extend_from_slice(&replace.bytes);
-        let curr_len = output.len();
+        // get length of replacing part
+        let prefix_len = &output.len();
 
-        // TODO: check sizes?
+        if &replace.bytes.len() > &size.as_usize() {
+            return Err(format_err!("Failed to graft bytes, size is smaller than replacing bytes"))
+        }
+        // append replacing bytes
+        output.extend_from_slice(&replace.bytes);
 
         // fill missing bytes
         match fill_pattern {
-            FillPattern::Zero => output.resize(curr_len + size.as_usize(), 0x0),
-            FillPattern::One => output.resize(curr_len + size.as_usize(), 0xFF),
+            FillPattern::Zero => output.resize(prefix_len + size.as_usize(), 0x0),
+            FillPattern::One => output.resize(prefix_len + size.as_usize(), 0xFF),
             FillPattern::Random => {
                 let mut padding = vec![0; size.as_usize() - replace.bytes.len()];
                 ::rand::thread_rng().try_fill(&mut padding[..])?;
