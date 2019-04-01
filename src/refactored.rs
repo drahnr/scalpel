@@ -219,3 +219,36 @@ impl AnnotatedBytes {
 //         item.graft();
 //     }
 // }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_graft_ones() {
+        let size = 40usize;
+        let file_in = PathBuf::from("tmp/rand_bytes");
+        let file_graft = PathBuf::from("tmp/zeros");
+
+        let mut in_bytes = AnnotatedBytes::load(&file_in, MetaInfo::Bin).expect("Failed to load");
+        let graft_bytes = AnnotatedBytes::load(&file_graft, MetaInfo::Bin).expect("Failed to load");
+        let graft_len = graft_bytes.bytes.len();
+
+        in_bytes
+            .graft(
+                graft_bytes,
+                ByteOffset::new(0, Magnitude::Unit),
+                ByteOffset::new(size as u64, Magnitude::Unit),
+                FillPattern::One,
+            )
+            .expect("Failed to graft");
+
+        let ones = vec![255u8; size-graft_len];
+        let zeros = vec![0u8; graft_len];
+        assert_eq!(in_bytes.bytes[0..graft_len], zeros[..]);
+        assert_eq!(in_bytes.bytes[graft_len..size], ones[..]);
+        assert_ne!(in_bytes.bytes[size], 255u8);
+    }
+
+}
