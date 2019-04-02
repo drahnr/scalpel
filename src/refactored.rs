@@ -117,8 +117,11 @@ impl AnnotatedBytes {
             // split file in part before and after start index
             self.bytes = self.bytes.split_off(start.as_usize() - 1);
         }
-        // split off everything after size
-        self.bytes.split_off(size.as_usize());
+
+        if size.as_usize() < self.bytes.len() {
+            // split off everything after size
+            self.bytes.split_off(size.as_usize());
+        }
     }
 
     pub fn stitch(
