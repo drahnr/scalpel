@@ -169,7 +169,9 @@ impl AnnotatedBytes {
         let prefix_len = &output.len();
 
         if &replace.bytes.len() > &size.as_usize() {
-            return Err(format_err!("Failed to graft bytes, size is smaller than replacing bytes"))
+            return Err(format_err!(
+                "Failed to graft bytes, size is smaller than replacing bytes"
+            ));
         }
         // append replacing bytes
         output.extend_from_slice(&replace.bytes);
@@ -253,13 +255,13 @@ mod test {
 
     #[test]
     fn stitch() {
-        let bos : Vec<ByteOffset> = vec![
+        let bos: Vec<ByteOffset> = vec![
             ByteOffset::new(0, Magnitude::Unit),
             ByteOffset::new(1, Magnitude::K),
             ByteOffset::new(1, Magnitude::Ki),
         ];
 
-        let mut byts : Vec<AnnotatedBytes> = vec![
+        let mut byts: Vec<AnnotatedBytes> = vec![
             AnnotatedBytes::new(),
             AnnotatedBytes::new(),
             AnnotatedBytes::new(),
@@ -272,7 +274,8 @@ mod test {
         let stitch_vec: Vec<(AnnotatedBytes, ByteOffset)> =
             byts.into_iter().zip(bos.into_iter()).collect();
 
-        let stitched = AnnotatedBytes::stitch(stitch_vec, FillPattern::One).expect("Failed to stitch");
+        let stitched =
+            AnnotatedBytes::stitch(stitch_vec, FillPattern::One).expect("Failed to stitch");
 
         let ones = vec![1u8; 100];
         let twos = vec![2u8; 4];

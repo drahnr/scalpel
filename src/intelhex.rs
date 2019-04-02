@@ -192,7 +192,7 @@ mod test {
     #[test]
     fn bad_records() {
         let bad_hex = PathBuf::from("tmp/bad_records.hex");
-        
+
         let res = convert_hex2bin(bad_hex.as_ref());
 
         assert!(res.is_err());
