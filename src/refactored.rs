@@ -245,13 +245,13 @@ mod test {
             )
             .expect("Failed to graft");
 
-        let ones = vec![1u8; 100];
+        let ones = vec![1u8; 200 - 10 - size];
         let twos = vec![2u8; graft_len];
         let ffs = vec![0xffu8; size - graft_len];
         assert_eq!(in_bytes.bytes[0..10], ones[..10]);
-        assert_eq!(in_bytes.bytes[10..10+graft_len], twos[..]);
-        assert_eq!(in_bytes.bytes[10+graft_len..10+size], ffs[..]);
-        assert_ne!(in_bytes.bytes[10+size..], ones[..10+size]);
+        assert_eq!(in_bytes.bytes[10..10 + graft_len], twos[..]);
+        assert_eq!(in_bytes.bytes[10 + graft_len..10 + size], ffs[..]);
+        assert_eq!(in_bytes.bytes[10 + size..], ones[..]);
     }
 
     #[test]
