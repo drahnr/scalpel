@@ -225,32 +225,33 @@ impl AnnotatedBytes {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::path::PathBuf;
 
     #[test]
     fn graft() {
-        let size = 40usize;
-        let file_in = PathBuf::from("tmp/rand_bytes");
-        let file_graft = PathBuf::from("tmp/zeros");
+        let size = 80usize;
 
-        let mut in_bytes = AnnotatedBytes::load(&file_in, MetaInfo::Bin).expect("Failed to load");
-        let graft_bytes = AnnotatedBytes::load(&file_graft, MetaInfo::Bin).expect("Failed to load");
+        let mut in_bytes = AnnotatedBytes::new();
+        let mut graft_bytes = AnnotatedBytes::new();
+        in_bytes.bytes.resize(200, 1u8);
+        graft_bytes.bytes.resize(50, 2u8);
         let graft_len = graft_bytes.bytes.len();
 
         in_bytes
             .graft(
                 graft_bytes,
-                ByteOffset::new(0, Magnitude::Unit),
+                ByteOffset::new(10, Magnitude::Unit),
                 ByteOffset::new(size as u64, Magnitude::Unit),
                 FillPattern::One,
             )
             .expect("Failed to graft");
 
-        let ones = vec![255u8; size - graft_len];
-        let zeros = vec![0u8; graft_len];
-        assert_eq!(in_bytes.bytes[0..graft_len], zeros[..]);
-        assert_eq!(in_bytes.bytes[graft_len..size], ones[..]);
-        assert_ne!(in_bytes.bytes[size], 255u8);
+        let ones = vec![1u8; 100];
+        let twos = vec![2u8; graft_len];
+        let ffs = vec![0xffu8; size - graft_len];
+        assert_eq!(in_bytes.bytes[0..10], ones[..10]);
+        assert_eq!(in_bytes.bytes[10..10+graft_len], twos[..]);
+        assert_eq!(in_bytes.bytes[10+graft_len..10+size], ffs[..]);
+        assert_ne!(in_bytes.bytes[10+size..], ones[..10+size]);
     }
 
     #[test]
