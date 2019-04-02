@@ -305,6 +305,6 @@ mod test {
         in_bytes.bytes.resize(100, 2u8);
         let size = ByteOffset::new(1, Magnitude::K);
         in_bytes.stance(start.clone(), size.clone());
-        assert_eq!(in_bytes.bytes.len(), 101-start.as_usize());
+        assert_eq!(in_bytes.bytes.len(), 101 - start.as_usize());
     }
 }
