@@ -226,7 +226,7 @@ mod test {
     use std::path::PathBuf;
 
     #[test]
-    fn test_graft_ones() {
+    fn graft() {
         let size = 40usize;
         let file_in = PathBuf::from("tmp/rand_bytes");
         let file_graft = PathBuf::from("tmp/zeros");
@@ -244,11 +244,44 @@ mod test {
             )
             .expect("Failed to graft");
 
-        let ones = vec![255u8; size-graft_len];
+        let ones = vec![255u8; size - graft_len];
         let zeros = vec![0u8; graft_len];
         assert_eq!(in_bytes.bytes[0..graft_len], zeros[..]);
         assert_eq!(in_bytes.bytes[graft_len..size], ones[..]);
         assert_ne!(in_bytes.bytes[size], 255u8);
     }
 
+    #[test]
+    fn stitch() {
+        let bos : Vec<ByteOffset> = vec![
+            ByteOffset::new(0, Magnitude::Unit),
+            ByteOffset::new(1, Magnitude::K),
+            ByteOffset::new(1, Magnitude::Ki),
+        ];
+
+        let mut byts : Vec<AnnotatedBytes> = vec![
+            AnnotatedBytes::new(),
+            AnnotatedBytes::new(),
+            AnnotatedBytes::new(),
+        ];
+
+        byts[0].bytes.resize(30, 1u8);
+        byts[1].bytes.resize(4, 2u8);
+        byts[2].bytes.resize(100, 3u8);
+
+        let stitch_vec: Vec<(AnnotatedBytes, ByteOffset)> =
+            byts.into_iter().zip(bos.into_iter()).collect();
+
+        let stitched = AnnotatedBytes::stitch(stitch_vec, FillPattern::One).expect("Failed to stitch");
+
+        let ones = vec![1u8; 100];
+        let twos = vec![2u8; 4];
+        let threes = vec![3u8; 100];
+        let ffs = vec![255u8; 1000];
+        assert_eq!(stitched.bytes[..30], ones[..30]);
+        assert_eq!(stitched.bytes[30..1000], ffs[30..1000]);
+        assert_eq!(stitched.bytes[1000..1004], twos[..]);
+        assert_eq!(stitched.bytes[1004..1024], ffs[..20]);
+        assert_eq!(stitched.bytes[1024..], threes[..]);
+    }
 }
