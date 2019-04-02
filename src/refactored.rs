@@ -291,4 +291,20 @@ mod test {
         assert_eq!(stitched.bytes[1004..1024], ffs[..20]);
         assert_eq!(stitched.bytes[1024..], threes[..]);
     }
+
+    #[test]
+    fn stance() {
+        let mut in_bytes = AnnotatedBytes::new();
+        in_bytes.bytes.resize(100, 2u8);
+
+        let start = ByteOffset::new(10, Magnitude::Unit);
+        let size = ByteOffset::new(40, Magnitude::Unit);
+        in_bytes.stance(start.clone(), size.clone());
+        assert_eq!(in_bytes.bytes.len(), size.as_usize());
+
+        in_bytes.bytes.resize(100, 2u8);
+        let size = ByteOffset::new(1, Magnitude::K);
+        in_bytes.stance(start.clone(), size.clone());
+        assert_eq!(in_bytes.bytes.len(), 101-start.as_usize());
+    }
 }
