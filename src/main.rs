@@ -27,22 +27,22 @@ use std::path::PathBuf;
 use failure::Error;
 
 mod byte_offset;
+mod range;
 mod intelhex;
 
 mod refactored;
 use crate::refactored::{AnnotatedBytes, FillPattern, MetaInfo, Result};
 
 use crate::byte_offset::*;
+use crate::range::*;
 
 const USAGE: &'static str = "
 scalpel
 
 Usage:
-  scalpel stance [--start=<start>] --end=<end>   --output=<output> <input> [--file-format=<format>]
-  scalpel stance [--start=<start>] --size=<size> --output=<output> <input> [--file-format=<format>]
-  scalpel stitch (--files=<files>  --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
-  scalpel graft  [--start=<start>] --end=<end>   --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
-  scalpel graft  [--start=<start>] --size=<size> --replace=<replace> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
+  scalpel stance --range=<range> --output=<output> <input> [--file-format=<format>]
+  scalpel stitch (--files=<files> --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
+  scalpel graft  --replace=<replace> --range=<range> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
   scalpel (-h | --help)
   scalpel (-v |--version)
 
@@ -54,9 +54,7 @@ Commands:
 Options:
   -h --help                     Show this screen.
   -v --version                  Show version.
-  --start=<start>               Start byte offset of the section to stance/graft. If omitted, set to 0.
-  --end=<end>                   The end byte offset which will not be included.
-  --size=<size>                 Alternate way to sepcify the <end> combined with start.
+  --range=<range>               byte range in rust slice-like sytnax: <start>..<end> yields [start,end), accepts the units K, Ki, M, Mi, G, Gi. Example: 12K..4Ki
   --fill-pattern=<fill_patern>  Specify padding style for stitching files (random|one|zero)
   --replace=<replace>           File which replaces the original part
   --file-format=<format>        define output file format as either bin (default) or hex, has no influence on file ending!
@@ -73,6 +71,7 @@ struct Args {
     flag_size: Option<ByteOffset>,
     flag_files: Vec<PathBuf>,
     flag_offset: Vec<ByteOffset>,
+    flag_range: Range,
     flag_output: PathBuf,
     flag_fill_pattern: Option<FillPattern>,
     flag_file_format: Option<MetaInfo>,
@@ -101,23 +100,25 @@ fn run() -> Result<()> {
     } else if args.cmd_stance {
         // command stance
 
-        // do input handling
-        let start = args.flag_start.unwrap_or_default(); // if none, set to 0
-        let size: ByteOffset = if let Some(end) = args.flag_end {
-            if let Some(_) = args.flag_size {
-                return Err(format_err!(
-                    "Either end or size has to be specified, not both"
-                ));
-            }
-            if start >= end {
-                return Err(format_err!("Start must not be greater than end"));
-            }
-            end - start.clone()
-        } else if let Some(size) = args.flag_size {
-            size
-        } else {
-            return Err(format_err!("Either end addr or size has to be specified"));
-        };
+        // // do input handling
+        // let start = args.flag_start.unwrap_or_default(); // if none, set to 0
+        // let size: ByteOffset = if let Some(end) = args.flag_end {
+        //     if let Some(_) = args.flag_size {
+        //         return Err(format_err!(
+        //             "Either end or size has to be specified, not both"
+        //         ));
+        //     }
+        //     if start >= end {
+        //         return Err(format_err!("Start must not be greater than end"));
+        //     }
+        //     end - start.clone()
+        // } else if let Some(size) = args.flag_size {
+        //     size
+        // } else {
+        //     return Err(format_err!("Either end addr or size has to be specified"));
+        // };
+        let start = args.flag_range.start;
+        let size = args.flag_range.end - start.clone();
 
         // guess meta_in from file
         let path = args.arg_input;
@@ -175,27 +176,34 @@ fn run() -> Result<()> {
 
         Ok(())
     } else if args.cmd_graft {
-        // do input handling
-        let start = args.flag_start.unwrap_or_default(); // if none, set to 0
-        let size: ByteOffset = if let Some(end) = args.flag_end {
-            if let Some(_) = args.flag_size {
-                return Err(format_err!(
-                    "Either end or size has to be specified, not both"
-                ));
-            }
-            if start >= end {
-                return Err(format_err!(
-                    "end addr {1} should be larger than start addr {0}",
-                    start,
-                    end
-                ));
-            }
-            end - start.clone()
-        } else if let Some(size) = args.flag_size {
-            size
-        } else {
-            return Err(format_err!("Either end addr or size has to be specified"));
-        };
+        
+        // // do input handling
+        // let start = args.flag_start.unwrap_or_default(); // if none, set to 0
+        // let size: ByteOffset = if let Some(end) = args.flag_end {
+        //     if let Some(_) = args.flag_size {
+        //         return Err(format_err!(
+        //             "Either end or size has to be specified, not both"
+        //         ));
+        //     }
+        //     if start >= end {
+        //         return Err(format_err!(
+        //             "end addr {1} should be larger than start addr {0}",
+        //             start,
+        //             end
+        //         ));
+        //     }
+        //     end - start.clone()
+        // } else if let Some(size) = args.flag_size {
+        //     size
+        // } else {
+        //     return Err(format_err!("Either end addr or size has to be specified"));
+        // };
+
+        let start = args.flag_range.start;
+        let size = args.flag_range.end.clone() - start.clone();
+        if size < ByteOffset::new(0, Magnitude::Unit) {
+            return Err(format_err!("End {} has to be greater than start {}", start, args.flag_range.end))
+        }
 
         // guess meta_in from files
         let path_in = args.arg_input;

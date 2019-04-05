@@ -2,6 +2,7 @@ use failure::Error;
 use regex::{Captures, Regex};
 use serde::de;
 use std::fmt;
+use std::str::FromStr;
 
 use crate::refactored::Result;
 
@@ -185,6 +186,42 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
             }
         }
         deserializer.deserialize_str(ByteOffsetVisitor)
+    }
+}
+
+impl FromStr for ByteOffset {
+    // bad error type, use a better one or define one
+    type Err = Error;
+    // type Err = std::num::ParseIntError;
+
+    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
+        lazy_static!{
+                    static ref REGEX: Regex = Regex::new(r"^([0-9]+)((?:[KMGTE]i?)?)$").unwrap();
+                }
+        
+        let byte_offset = REGEX
+            .captures(s)
+            .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse str")))
+            .and_then(|captures| {
+                if captures.len() == 3 {
+                    let num_str = &captures[1];
+                    let magnitude_str = &captures[2];
+                    let num: u64 = num_str.parse::<u64>().map_err(|e| {
+                        Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
+                    })?;
+                    let magnitude = Magnitude::parse(magnitude_str).map_err(|e| {
+                        Err::<Captures, Error>(format_err!(
+                            "Failed to parse magnitude {}",
+                            e
+                        ))
+                    })?;
+                    Ok(ByteOffset::new(num, magnitude))
+                } else {
+                    Ok(Default::default())
+                }
+            })
+            .map_err(|e| format_err!("{:?}", e))?;
+        Ok(byte_offset)
     }
 }
 
