@@ -27,8 +27,8 @@ use std::path::PathBuf;
 use failure::Error;
 
 mod byte_offset;
-mod range;
 mod intelhex;
+mod range;
 
 mod refactored;
 use crate::refactored::{AnnotatedBytes, FillPattern, MetaInfo, Result};
@@ -176,7 +176,6 @@ fn run() -> Result<()> {
 
         Ok(())
     } else if args.cmd_graft {
-        
         // // do input handling
         // let start = args.flag_start.unwrap_or_default(); // if none, set to 0
         // let size: ByteOffset = if let Some(end) = args.flag_end {
@@ -202,7 +201,11 @@ fn run() -> Result<()> {
         let start = args.flag_range.start;
         let size = args.flag_range.end.clone() - start.clone();
         if size < ByteOffset::new(0, Magnitude::Unit) {
-            return Err(format_err!("End {} has to be greater than start {}", start, args.flag_range.end))
+            return Err(format_err!(
+                "End {} has to be greater than start {}",
+                start,
+                args.flag_range.end
+            ));
         }
 
         // guess meta_in from files

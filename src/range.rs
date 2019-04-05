@@ -35,8 +35,10 @@ impl<'de> de::Deserialize<'de> for Range {
             where
                 E: de::Error,
             {
-                lazy_static!{
-                    static ref REGEX: Regex = Regex::new(r"^(([0-9]+)((?:[KMGTE]i?)?))\.\.(([0-9]+)((?:[KMGTE]i?)?))$").unwrap();
+                lazy_static! {
+                    static ref REGEX: Regex =
+                        Regex::new(r"^(([0-9]+)((?:[KMGTE]i?)?))\.\.(([0-9]+)((?:[KMGTE]i?)?))$")
+                            .unwrap();
                 }
 
                 let range = REGEX
@@ -46,9 +48,13 @@ impl<'de> de::Deserialize<'de> for Range {
                         if captures.len() == 7 {
                             let start_str = &captures[1];
                             let end_str = &captures[4];
-                            let start: ByteOffset = start_str.parse::<ByteOffset>().map_err(|e| {
-                                Err::<Captures, Error>(format_err!("Failed to parse start {}", e))
-                            })?;
+                            let start: ByteOffset =
+                                start_str.parse::<ByteOffset>().map_err(|e| {
+                                    Err::<Captures, Error>(format_err!(
+                                        "Failed to parse start {}",
+                                        e
+                                    ))
+                                })?;
                             let end: ByteOffset = end_str.parse::<ByteOffset>().map_err(|e| {
                                 Err::<Captures, Error>(format_err!("Failed to parse end {}", e))
                             })?;

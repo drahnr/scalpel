@@ -195,10 +195,10 @@ impl FromStr for ByteOffset {
     // type Err = std::num::ParseIntError;
 
     fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
-        lazy_static!{
-                    static ref REGEX: Regex = Regex::new(r"^([0-9]+)((?:[KMGTE]i?)?)$").unwrap();
-                }
-        
+        lazy_static! {
+            static ref REGEX: Regex = Regex::new(r"^([0-9]+)((?:[KMGTE]i?)?)$").unwrap();
+        }
+
         let byte_offset = REGEX
             .captures(s)
             .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse str")))
@@ -210,10 +210,7 @@ impl FromStr for ByteOffset {
                         Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
                     })?;
                     let magnitude = Magnitude::parse(magnitude_str).map_err(|e| {
-                        Err::<Captures, Error>(format_err!(
-                            "Failed to parse magnitude {}",
-                            e
-                        ))
+                        Err::<Captures, Error>(format_err!("Failed to parse magnitude {}", e))
                     })?;
                     Ok(ByteOffset::new(num, magnitude))
                 } else {
