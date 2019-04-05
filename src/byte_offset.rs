@@ -190,9 +190,7 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
 }
 
 impl FromStr for ByteOffset {
-    // bad error type, use a better one or define one
     type Err = Error;
-    // type Err = std::num::ParseIntError;
 
     fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
         lazy_static! {

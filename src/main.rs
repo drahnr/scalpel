@@ -118,7 +118,14 @@ fn run() -> Result<()> {
         //     return Err(format_err!("Either end addr or size has to be specified"));
         // };
         let start = args.flag_range.start;
-        let size = args.flag_range.end - start.clone();
+        let size = args.flag_range.end.clone() - start.clone();
+        if size < ByteOffset::new(0, Magnitude::Unit) {
+            return Err(format_err!(
+                "End {} has to be greater than start {}",
+                start,
+                args.flag_range.end
+            ));
+        }
 
         // guess meta_in from file
         let path = args.arg_input;
