@@ -67,9 +67,6 @@ struct Args {
     cmd_stitch: bool,
     cmd_graft: bool,
     arg_input: PathBuf,
-    flag_start: Option<ByteOffset>,
-    flag_end: Option<ByteOffset>,
-    flag_size: Option<ByteOffset>,
     flag_files: Vec<PathBuf>,
     flag_offset: Vec<ByteOffset>,
     flag_range: Range,
@@ -100,33 +97,13 @@ fn run() -> Result<()> {
         Ok(())
     } else if args.cmd_stance {
         // command stance
-
-        // // do input handling
-        // let start = args.flag_start.unwrap_or_default(); // if none, set to 0
-        // let size: ByteOffset = if let Some(end) = args.flag_end {
-        //     if let Some(_) = args.flag_size {
-        //         return Err(format_err!(
-        //             "Either end or size has to be specified, not both"
-        //         ));
-        //     }
-        //     if start >= end {
-        //         return Err(format_err!("Start must not be greater than end"));
-        //     }
-        //     end - start.clone()
-        // } else if let Some(size) = args.flag_size {
-        //     size
-        // } else {
-        //     return Err(format_err!("Either end addr or size has to be specified"));
-        // };
         let start = args.flag_range.start;
         let size = args.flag_range.size;
 
         // guess meta_in from file
         let path = args.arg_input;
         let meta_in = MetaInfo::from_file_extension(&path).or_else::<Error, _>(|_err: Error| {
-            // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
-            // Ok(mi)
-            MetaInfo::from_content_alt(&path)
+            MetaInfo::from_content(&path)
         })?;
 
         // load the input file
@@ -150,9 +127,7 @@ fn run() -> Result<()> {
             |mut collection, path| {
                 let meta_in: MetaInfo =
                     MetaInfo::from_file_extension(&path).or_else::<Error, _>(|_err: Error| {
-                        // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
-                        // Ok(mi)
-                        MetaInfo::from_content_alt(&path)
+                        MetaInfo::from_content(&path)
                     })?;
                 let bytes = AnnotatedBytes::load(&path, meta_in)?;
                 collection.push(bytes);
@@ -177,27 +152,7 @@ fn run() -> Result<()> {
 
         Ok(())
     } else if args.cmd_graft {
-        // // do input handling
-        // let start = args.flag_start.unwrap_or_default(); // if none, set to 0
-        // let size: ByteOffset = if let Some(end) = args.flag_end {
-        //     if let Some(_) = args.flag_size {
-        //         return Err(format_err!(
-        //             "Either end or size has to be specified, not both"
-        //         ));
-        //     }
-        //     if start >= end {
-        //         return Err(format_err!(
-        //             "end addr {1} should be larger than start addr {0}",
-        //             start,
-        //             end
-        //         ));
-        //     }
-        //     end - start.clone()
-        // } else if let Some(size) = args.flag_size {
-        //     size
-        // } else {
-        //     return Err(format_err!("Either end addr or size has to be specified"));
-        // };
+        // command graft
 
         let start = args.flag_range.start;
         let size = args.flag_range.size;
@@ -207,15 +162,11 @@ fn run() -> Result<()> {
         let path_graft = args.flag_replace;
         let meta_in: MetaInfo =
             MetaInfo::from_file_extension(&path_in).or_else::<Error, _>(|_err: Error| {
-                // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
-                // Ok(mi)
-                MetaInfo::from_content_alt(&path_in)
+                MetaInfo::from_content(&path_in)
             })?;
         let meta_graft: MetaInfo =
             MetaInfo::from_file_extension(&path_graft).or_else::<Error, _>(|_err: Error| {
-                // let mi: MetaInfo = MetaInfo::from_content(&[0, 0, 0, 0, 0, 0])?;
-                // Ok(mi)
-                MetaInfo::from_content_alt(&path_graft)
+                MetaInfo::from_content(&path_graft)
             })?;
 
         // open input files

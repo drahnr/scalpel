@@ -185,7 +185,7 @@ mod test {
 :100050000B00000000000000FE0000000000000097
 :00000001FF";
 
-        // add a more sophisitcated test
+        // add a more sophisticated test
         assert_eq!(content, hex);
     }
 
