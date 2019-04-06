@@ -8,12 +8,12 @@ use crate::byte_offset::ByteOffset;
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub struct Range {
     pub start: ByteOffset,
-    pub end: ByteOffset,
+    pub size: ByteOffset,
 }
 
 impl Range {
-    pub fn new(start: ByteOffset, end: ByteOffset) -> Self {
-        Range { start, end }
+    pub fn new(start: ByteOffset, size: ByteOffset) -> Self {
+        Range { start, size }
     }
 }
 
@@ -37,7 +37,7 @@ impl<'de> de::Deserialize<'de> for Range {
             {
                 lazy_static! {
                     static ref REGEX: Regex =
-                        Regex::new(r"^(([0-9]+)((?:[KMGTE]i?)?))\.\.(([0-9]+)((?:[KMGTE]i?)?))$")
+                        Regex::new(r"^(([0-9]+)((?:[KMGTE]i?)?))(\.\.|\+)(([0-9]+)((?:[KMGTE]i?)?))$")
                             .unwrap();
                 }
 
@@ -45,9 +45,9 @@ impl<'de> de::Deserialize<'de> for Range {
                     .captures(value)
                     .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse value")))
                     .and_then(|captures| {
-                        if captures.len() == 7 {
+                        if captures.len() == 8 {
                             let start_str = &captures[1];
-                            let end_str = &captures[4];
+                            let size_or_end_str = &captures[5];
                             let start: ByteOffset =
                                 start_str.parse::<ByteOffset>().map_err(|e| {
                                     Err::<Captures, Error>(format_err!(
@@ -55,10 +55,25 @@ impl<'de> de::Deserialize<'de> for Range {
                                         e
                                     ))
                                 })?;
-                            let end: ByteOffset = end_str.parse::<ByteOffset>().map_err(|e| {
-                                Err::<Captures, Error>(format_err!("Failed to parse end {}", e))
-                            })?;
-                            Ok(Range::new(start, end))
+                            let size: ByteOffset = match &captures[4] {
+                                ".." => {
+                                    let end = size_or_end_str.parse::<ByteOffset>().map_err(|e| {
+                                        Err::<Captures, Error>(format_err!("Failed to parse end {}", e))
+                                    })?;
+                                    if &start > &end {
+                                        return Err(Err(format_err!("Start {} must be greater than end {}", &start, &end)))
+                                    } else {
+                                        end - start.clone()
+                                    }
+                                }
+                                "+" => {
+                                    size_or_end_str.parse::<ByteOffset>().map_err(|e| {
+                                        Err::<Captures, Error>(format_err!("Failed to parse size {}", e))
+                                    })?
+                                }
+                                _ => return Err(Err(format_err!("Failed to parse {}", &captures[4]))),
+                            };
+                            Ok(Range::new(start, size))
                         } else {
                             Ok(Default::default())
                         }

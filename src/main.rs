@@ -54,7 +54,8 @@ Commands:
 Options:
   -h --help                     Show this screen.
   -v --version                  Show version.
-  --range=<range>               byte range in rust slice-like sytnax: <start>..<end> yields [start,end), accepts the units K, Ki, M, Mi, G, Gi. Example: 12K..4Ki
+  --range=<range>               byte range in rust slice-like sytnax: <start>..<end> yields [start,end) or <start>+<size> yields [start, start+size]
+                                accepts the units K, Ki, M, Mi, G, Gi. Examples: 12K..4Ki   12M+512
   --fill-pattern=<fill_patern>  Specify padding style for stitching files (random|one|zero)
   --replace=<replace>           File which replaces the original part
   --file-format=<format>        define output file format as either bin (default) or hex, has no influence on file ending!
@@ -118,14 +119,7 @@ fn run() -> Result<()> {
         //     return Err(format_err!("Either end addr or size has to be specified"));
         // };
         let start = args.flag_range.start;
-        let size = args.flag_range.end.clone() - start.clone();
-        if size < ByteOffset::new(0, Magnitude::Unit) {
-            return Err(format_err!(
-                "End {} has to be greater than start {}",
-                start,
-                args.flag_range.end
-            ));
-        }
+        let size = args.flag_range.size;
 
         // guess meta_in from file
         let path = args.arg_input;
@@ -206,14 +200,7 @@ fn run() -> Result<()> {
         // };
 
         let start = args.flag_range.start;
-        let size = args.flag_range.end.clone() - start.clone();
-        if size < ByteOffset::new(0, Magnitude::Unit) {
-            return Err(format_err!(
-                "End {} has to be greater than start {}",
-                start,
-                args.flag_range.end
-            ));
-        }
+        let size = args.flag_range.size;
 
         // guess meta_in from files
         let path_in = args.arg_input;
