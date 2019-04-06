@@ -5,51 +5,43 @@
 
 A scalpel and stitch tool for binaries. Maybe also a signing tool, maybe.
 
-### Snip around, stitch up and/or sign binaries
+### Snip around, stitch up or graft binaries
 
 This is mostly used for the case where parts of the binary need to be extracted or replaced.
 
 #### Use Cases
 
-* cut firmware into pieces from an all-in-one blob
+* stance firmware into pieces from an all-in-one blob
 
     ```bash
-    scalpel cut --start 0 --end 4Ki --output bootloader.bin firmware.bin
-    scalpel cut --start 4Ki --size 241664 --output part_A.bin firmware.bin --file-format bin
-    scalpel cut --start 282624 --size 241664 --output part_B.bin firmware.hex --file-format hex
+    scalpel stance --range 0..4Ki --output bootloader.bin firmware.bin
+    scalpel stance --range 4Ki+241664 --output part_A.bin firmware.bin --file-format bin
+    scalpel stance --range 282624+241664 --output part_B.bin firmware.hex --file-format hex
     ```
 
 * stitch firmware pieces together such as bootloader and application
 
     ```bash
     scalpel stitch --binary tmp/test_bytes --offset 0    --binary tmp/test_bytes --offset 2048 --fill-pattern zero --output stitched.bin
-    scalpel stitch --binary tmp/test_bytes --offset 2Ki --binary tmp/test_bytes --offset 0 --fill-pattern one --output stitched.hex --file-format hex
+    scalpel stitch --binary tmp/test_bytes --offset 2Ki  --binary tmp/test_bytes --offset 0 --fill-pattern one --output stitched.hex --file-format hex
     scalpel stitch --binary tmp/test_bytes --offset 2058 --binary tmp/test_bytes --offset 10 --fill-pattern random --output stitched.bin
     ```
 
 * replace a section with a new file
 
     ```bash
-    scalpel replace --start 1Ki --end 2Ki --replace tmp/test_cut_out --output cut tmp/test_bytes
-    scalpel replace --end 2Ki --replace tmp/test_cut_out --output cut tmp/test_bytes --file-format bin
-    scalpel replace --start 1Ki --size 1Ki --replace tmp/test_cut_out --output cut tmp/test_bytes
-    scalpel replace --start 1Ki --size 1Ki --replace tmp/test_cut_out --output cut tmp/test_bytes.hex --file-format hex
-    ```
-
-* [alpha] sign firmware for authenticity with edcsa using the ed25519 curve
-
-    ```bash
-    scalpel sign tmp/ed25519_keypair.pk8 --format pkcs8 tmp/signme.bin
-    scalpel sign tmp/ed25519_keypair.pk8 --output tmp/signme_signed.bin tmp/signme.bin
-    scalpel sign tmp/ed25519_keypair.pk8 tmp/test_bytes tmp/signme.bin
+    scalpel graft --range 1Ki..2Ki --replace tmp/test_cut_out --output cut tmp/test_bytes
+    scalpel graft --range 0..2Ki   --replace tmp/test_cut_out --output cut tmp/test_bytes --file-format bin
+    scalpel graft --range 1Ki+1Ki  --replace tmp/test_cut_out --output cut tmp/test_bytes
+    scalpel graft --range 1Ki+1Ki  --replace tmp/test_cut_out --output cut tmp/test_bytes.hex --file-format hex
     ```
 
 #### Features
 
 * [x] cut off a binary at specific start and end/size
-* [x] Add signature verification and appendix features (using preferably [ring] and [webpki])
+* [ ] Add signature verification and appendix features (using preferably [ring] and [webpki])
 * [ ] Handle endianness of checksums properly
-* [x] Replace parts (i.e. cert files or non volatile memory and/or sections) (with resigning if necessary)
+* [x] Replace parts (i.e. cert files or non volatile memory and/or sections)
 * [ ] Allow hexadecimal input
 * [x] Allow multipile input scales (K = 1000, Ki = 1024, M = 1e6, Mi = 1024*1024, ...)
 * [ ] Add verifier option for alignment to given sector/page size
