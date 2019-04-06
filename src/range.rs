@@ -36,9 +36,10 @@ impl<'de> de::Deserialize<'de> for Range {
                 E: de::Error,
             {
                 lazy_static! {
-                    static ref REGEX: Regex =
-                        Regex::new(r"^(([0-9]+)((?:[KMGTE]i?)?))(\.\.|\+)(([0-9]+)((?:[KMGTE]i?)?))$")
-                            .unwrap();
+                    static ref REGEX: Regex = Regex::new(
+                        r"^(([0-9]+)((?:[KMGTE]i?)?))(\.\.|\+)(([0-9]+)((?:[KMGTE]i?)?))$"
+                    )
+                    .unwrap();
                 }
 
                 let range = REGEX
@@ -57,21 +58,35 @@ impl<'de> de::Deserialize<'de> for Range {
                                 })?;
                             let size: ByteOffset = match &captures[4] {
                                 ".." => {
-                                    let end = size_or_end_str.parse::<ByteOffset>().map_err(|e| {
-                                        Err::<Captures, Error>(format_err!("Failed to parse end {}", e))
-                                    })?;
+                                    let end =
+                                        size_or_end_str.parse::<ByteOffset>().map_err(|e| {
+                                            Err::<Captures, Error>(format_err!(
+                                                "Failed to parse end {}",
+                                                e
+                                            ))
+                                        })?;
                                     if &start > &end {
-                                        return Err(Err(format_err!("Start {} must be greater than end {}", &start, &end)))
+                                        return Err(Err(format_err!(
+                                            "Start {} must be greater than end {}",
+                                            &start,
+                                            &end
+                                        )));
                                     } else {
                                         end - start.clone()
                                     }
                                 }
-                                "+" => {
-                                    size_or_end_str.parse::<ByteOffset>().map_err(|e| {
-                                        Err::<Captures, Error>(format_err!("Failed to parse size {}", e))
-                                    })?
+                                "+" => size_or_end_str.parse::<ByteOffset>().map_err(|e| {
+                                    Err::<Captures, Error>(format_err!(
+                                        "Failed to parse size {}",
+                                        e
+                                    ))
+                                })?,
+                                _ => {
+                                    return Err(Err(format_err!(
+                                        "Failed to parse {}",
+                                        &captures[4]
+                                    )));
                                 }
-                                _ => return Err(Err(format_err!("Failed to parse {}", &captures[4]))),
                             };
                             Ok(Range::new(start, size))
                         } else {

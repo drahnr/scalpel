@@ -102,9 +102,8 @@ fn run() -> Result<()> {
 
         // guess meta_in from file
         let path = args.arg_input;
-        let meta_in = MetaInfo::from_file_extension(&path).or_else::<Error, _>(|_err: Error| {
-            MetaInfo::from_content(&path)
-        })?;
+        let meta_in = MetaInfo::from_file_extension(&path)
+            .or_else::<Error, _>(|_err: Error| MetaInfo::from_content(&path))?;
 
         // load the input file
         let mut in_bytes = AnnotatedBytes::load(&path, meta_in)?;
@@ -125,10 +124,8 @@ fn run() -> Result<()> {
             // Vec::<AnnotatedBytes>::with_capacity(10),
             Vec::<AnnotatedBytes>::new(),
             |mut collection, path| {
-                let meta_in: MetaInfo =
-                    MetaInfo::from_file_extension(&path).or_else::<Error, _>(|_err: Error| {
-                        MetaInfo::from_content(&path)
-                    })?;
+                let meta_in: MetaInfo = MetaInfo::from_file_extension(&path)
+                    .or_else::<Error, _>(|_err: Error| MetaInfo::from_content(&path))?;
                 let bytes = AnnotatedBytes::load(&path, meta_in)?;
                 collection.push(bytes);
                 Ok::<_, Error>(collection)
@@ -160,14 +157,10 @@ fn run() -> Result<()> {
         // guess meta_in from files
         let path_in = args.arg_input;
         let path_graft = args.flag_replace;
-        let meta_in: MetaInfo =
-            MetaInfo::from_file_extension(&path_in).or_else::<Error, _>(|_err: Error| {
-                MetaInfo::from_content(&path_in)
-            })?;
-        let meta_graft: MetaInfo =
-            MetaInfo::from_file_extension(&path_graft).or_else::<Error, _>(|_err: Error| {
-                MetaInfo::from_content(&path_graft)
-            })?;
+        let meta_in: MetaInfo = MetaInfo::from_file_extension(&path_in)
+            .or_else::<Error, _>(|_err: Error| MetaInfo::from_content(&path_in))?;
+        let meta_graft: MetaInfo = MetaInfo::from_file_extension(&path_graft)
+            .or_else::<Error, _>(|_err: Error| MetaInfo::from_content(&path_graft))?;
 
         // open input files
         let mut in_bytes = AnnotatedBytes::load(&path_in, meta_in)?;
