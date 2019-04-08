@@ -157,19 +157,24 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
                 E: de::Error,
             {
                 lazy_static! {
-                    static ref REGEX: Regex = Regex::new(r"^([0-9]+)((?:[KMGTE]i?)?)$").unwrap();
+                    static ref REGEX: Regex = Regex::new(r"^(0x)?([0-9]+)((?:[KMGTE]i?)?)$").unwrap();
                 }
 
                 let byte_offset = REGEX
                     .captures(value)
                     .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse value")))
                     .and_then(|captures| {
-                        if captures.len() == 3 {
-                            let num_str = &captures[1];
-                            let magnitude_str = &captures[2];
-                            let num: u64 = num_str.parse::<u64>().map_err(|e| {
-                                Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
-                            })?;
+                        if captures.len() == 4 {
+                            let num_str = &captures[2];
+                            let magnitude_str = &captures[3];
+                            let num: u64 = match &captures[1] {
+                                "0x" => u64::from_str_radix(num_str, 16).map_err(|e| {
+                                    Err::<Captures, Error>(format_err!("Failed to parse u64 from hex {}", e))
+                                })?,
+                                _ => num_str.parse::<u64>().map_err(|e| {
+                                    Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
+                                })?,
+                            };
                             let magnitude = Magnitude::parse(magnitude_str).map_err(|e| {
                                 Err::<Captures, Error>(format_err!(
                                     "Failed to parse magnitude {}",
@@ -194,19 +199,24 @@ impl FromStr for ByteOffset {
 
     fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
         lazy_static! {
-            static ref REGEX: Regex = Regex::new(r"^([0-9]+)((?:[KMGTE]i?)?)$").unwrap();
+            static ref REGEX: Regex = Regex::new(r"^(0x)?([0-9]+)((?:[KMGTE]i?)?)$").unwrap();
         }
 
         let byte_offset = REGEX
             .captures(s)
             .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse str")))
             .and_then(|captures| {
-                if captures.len() == 3 {
-                    let num_str = &captures[1];
-                    let magnitude_str = &captures[2];
-                    let num: u64 = num_str.parse::<u64>().map_err(|e| {
-                        Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
-                    })?;
+                if captures.len() == 4 {
+                    let num_str = &captures[2];
+                    let magnitude_str = &captures[3];
+                    let num: u64 = match &captures[1] {
+                        "0x" => u64::from_str_radix(num_str, 16).map_err(|e| {
+                            Err::<Captures, Error>(format_err!("Failed to parse u64 from hex {}", e))
+                        })?,
+                        _ => num_str.parse::<u64>().map_err(|e| {
+                            Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
+                        })?,
+                    };
                     let magnitude = Magnitude::parse(magnitude_str).map_err(|e| {
                         Err::<Captures, Error>(format_err!("Failed to parse magnitude {}", e))
                     })?;

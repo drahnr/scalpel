@@ -37,7 +37,7 @@ impl<'de> de::Deserialize<'de> for Range {
             {
                 lazy_static! {
                     static ref REGEX: Regex = Regex::new(
-                        r"^(([0-9]+)((?:[KMGTE]i?)?))(\.\.|\+)(([0-9]+)((?:[KMGTE]i?)?))$"
+                        r"^((0x)?([0-9]+)((?:[KMGTE]i?)?))(\.\.|\+)((0x)?([0-9]+)((?:[KMGTE]i?)?))$"
                     )
                     .unwrap();
                 }
@@ -46,9 +46,9 @@ impl<'de> de::Deserialize<'de> for Range {
                     .captures(value)
                     .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse value")))
                     .and_then(|captures| {
-                        if captures.len() == 8 {
+                        if captures.len() == 10 {
                             let start_str = &captures[1];
-                            let size_or_end_str = &captures[5];
+                            let size_or_end_str = &captures[6];
                             let start: ByteOffset =
                                 start_str.parse::<ByteOffset>().map_err(|e| {
                                     Err::<Captures, Error>(format_err!(
@@ -56,7 +56,7 @@ impl<'de> de::Deserialize<'de> for Range {
                                         e
                                     ))
                                 })?;
-                            let size: ByteOffset = match &captures[4] {
+                            let size: ByteOffset = match &captures[5] {
                                 ".." => {
                                     let end =
                                         size_or_end_str.parse::<ByteOffset>().map_err(|e| {
@@ -84,7 +84,7 @@ impl<'de> de::Deserialize<'de> for Range {
                                 _ => {
                                     return Err(Err(format_err!(
                                         "Failed to parse {}",
-                                        &captures[4]
+                                        &captures[5]
                                     )));
                                 }
                             };
