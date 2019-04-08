@@ -47,7 +47,7 @@ impl MetaInfo {
     }
     pub fn from_content(path: &Path) -> Result<MetaInfo> {
         match tree_magic::from_filepath(path).as_str() {
-            "binary" => Ok(MetaInfo::Bin),
+            "application/octet-stream" => Ok(MetaInfo::Bin),
             "Ascii/text" => Ok(MetaInfo::IntelHex),
             _ => Err(format_err!("Unspupported File Type")),
         }
