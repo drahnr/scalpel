@@ -157,7 +157,8 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
                 E: de::Error,
             {
                 lazy_static! {
-                    static ref REGEX: Regex = Regex::new(r"^(0x)?([0-9]+)((?:[KMGTE]i?)?)$").unwrap();
+                    static ref REGEX: Regex =
+                        Regex::new(r"^(0x)?([0-9]+)((?:[KMGTE]i?)?)$").unwrap();
                 }
 
                 let byte_offset = REGEX
@@ -169,7 +170,10 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
                             let magnitude_str = &captures[3];
                             let num: u64 = match &captures[1] {
                                 "0x" => u64::from_str_radix(num_str, 16).map_err(|e| {
-                                    Err::<Captures, Error>(format_err!("Failed to parse u64 from hex {}", e))
+                                    Err::<Captures, Error>(format_err!(
+                                        "Failed to parse u64 from hex {}",
+                                        e
+                                    ))
                                 })?,
                                 _ => num_str.parse::<u64>().map_err(|e| {
                                     Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
@@ -211,7 +215,10 @@ impl FromStr for ByteOffset {
                     let magnitude_str = &captures[3];
                     let num: u64 = match &captures[1] {
                         "0x" => u64::from_str_radix(num_str, 16).map_err(|e| {
-                            Err::<Captures, Error>(format_err!("Failed to parse u64 from hex {}", e))
+                            Err::<Captures, Error>(format_err!(
+                                "Failed to parse u64 from hex {}",
+                                e
+                            ))
                         })?,
                         _ => num_str.parse::<u64>().map_err(|e| {
                             Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
