@@ -112,9 +112,11 @@ impl AnnotatedBytes {
     }
 
     pub fn stance(&mut self, start: ByteOffset, size: ByteOffset) {
-        if start.as_usize() > 0usize {
+        if start.as_usize() > 0usize && start.as_usize() < self.bytes.len() {
             // split file in part before and after start index
             self.bytes = self.bytes.split_off(start.as_usize() - 1);
+        } else {
+            warn!("start {} is outside file size {}", start, self.bytes.len());
         }
 
         if size.as_usize() < self.bytes.len() {
