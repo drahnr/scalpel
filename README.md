@@ -39,10 +39,9 @@ This is mostly used for the case where parts of the binary need to be extracted 
 #### Features
 
 * [x] cut off a binary at specific start and end/size
-* [ ] Add signature verification and appendix features (using preferably [ring] and [webpki])
 * [ ] Handle endianness of checksums properly
 * [x] Replace parts (i.e. cert files or non volatile memory and/or sections)
-* [ ] Allow hexadecimal input
+* [x] Allow hexadecimal input
 * [x] Allow multipile input scales (K = 1000, Ki = 1024, M = 1e6, Mi = 1024*1024, ...)
 * [ ] Add verifier option for alignment to given sector/page size
 * [x] Allow files in IntelHex format for in- and output
