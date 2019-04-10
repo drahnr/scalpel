@@ -37,14 +37,14 @@ impl<'de> de::Deserialize<'de> for Range {
             {
                 lazy_static! {
                     static ref REGEX: Regex = Regex::new(
-                        r"^((0x)?([0-9]+)((?:[KMGTE]i?)?))(\.\.|\+)((0x)?([0-9]+)((?:[KMGTE]i?)?))$"
+                        r"^((?:(0[xX]){1}([A-Fa-f0-9]+))|(?:[0-9]+([KMGTE]i?)?))(\.\.|\+)((?:(0[xX]){1}([A-Fa-f0-9]+))|(?:[0-9]+([KMGTE]i?)?))$"
                     )
                     .unwrap();
                 }
 
                 let range = REGEX
                     .captures(value)
-                    .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse value")))
+                    .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse {} to Range", value)))
                     .and_then(|captures| {
                         if captures.len() == 10 {
                             let start_str = &captures[1];
