@@ -44,7 +44,9 @@ impl<'de> de::Deserialize<'de> for Range {
 
                 let range = REGEX
                     .captures(value)
-                    .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse {} to Range", value)))
+                    .ok_or_else(|| {
+                        Err::<Captures, Error>(format_err!("Failed to parse {} to Range", value))
+                    })
                     .and_then(|captures| {
                         if captures.len() == 10 {
                             let start_str = &captures[1];

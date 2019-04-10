@@ -181,11 +181,18 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
                                     let num_str = &captures[3];
                                     let magnitude_str = &captures[4];
                                     let num = num_str.parse::<u64>().map_err(|e| {
-                                        Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
+                                        Err::<Captures, Error>(format_err!(
+                                            "Failed to parse u64 {}",
+                                            e
+                                        ))
                                     })?;
-                                    let magnitude = Magnitude::parse(magnitude_str).map_err(|e| {
-                                        Err::<Captures, Error>(format_err!("Failed to parse magnitude {}", e))
-                                    })?;
+                                    let magnitude =
+                                        Magnitude::parse(magnitude_str).map_err(|e| {
+                                            Err::<Captures, Error>(format_err!(
+                                                "Failed to parse magnitude {}",
+                                                e
+                                            ))
+                                        })?;
                                     ByteOffset::new(num, magnitude)
                                 }
                             };
@@ -207,12 +214,15 @@ impl FromStr for ByteOffset {
 
     fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
         lazy_static! {
-            static ref REGEX: Regex = Regex::new(r"^(?:(0[xX]){1}([A-Fa-f0-9]+))|(?:([0-9]+)([KMGTE]i?)?)$").unwrap();
+            static ref REGEX: Regex =
+                Regex::new(r"^(?:(0[xX]){1}([A-Fa-f0-9]+))|(?:([0-9]+)([KMGTE]i?)?)$").unwrap();
         }
 
         let byte_offset = REGEX
             .captures(s)
-            .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse {} to ByteOffset", s)))
+            .ok_or_else(|| {
+                Err::<Captures, Error>(format_err!("Failed to parse {} to ByteOffset", s))
+            })
             .and_then(|captures| {
                 if captures.len() == 5 {
                     let byte_offset: ByteOffset = match &captures.get(1) {
@@ -233,7 +243,10 @@ impl FromStr for ByteOffset {
                                 Err::<Captures, Error>(format_err!("Failed to parse u64 {}", e))
                             })?;
                             let magnitude = Magnitude::parse(magnitude_str).map_err(|e| {
-                                Err::<Captures, Error>(format_err!("Failed to parse magnitude {}", e))
+                                Err::<Captures, Error>(format_err!(
+                                    "Failed to parse magnitude {}",
+                                    e
+                                ))
                             })?;
                             ByteOffset::new(num, magnitude)
                         }
@@ -327,7 +340,10 @@ mod test {
     fn bo_decimal_from_string() {
         let byte_offset_string = vec!["0", "45K", "12Ki", "92M", "999Mi", "012G", "209Gi"];
 
-        let byte_offsets: Vec<ByteOffset> = byte_offset_string.iter().map(|bo| ByteOffset::from_str(bo).expect("Failed to parse")).collect();
+        let byte_offsets: Vec<ByteOffset> = byte_offset_string
+            .iter()
+            .map(|bo| ByteOffset::from_str(bo).expect("Failed to parse"))
+            .collect();
 
         assert_eq!(byte_offsets[0], ByteOffset::new(0, Magnitude::Unit));
         assert_eq!(byte_offsets[1], ByteOffset::new(45, Magnitude::K));
@@ -341,7 +357,10 @@ mod test {
     #[test]
     fn bo_hex_from_string() {
         let byte_offset_strings = vec!["0x0", "0x100", "0XFAcBd"];
-        let byte_offsets: Vec<ByteOffset> = byte_offset_strings.iter().map(|bo| ByteOffset::from_str(bo).expect("failed to parse")).collect();
+        let byte_offsets: Vec<ByteOffset> = byte_offset_strings
+            .iter()
+            .map(|bo| ByteOffset::from_str(bo).expect("failed to parse"))
+            .collect();
 
         assert_eq!(byte_offsets[0], ByteOffset::new(0, Magnitude::Unit));
         assert_eq!(byte_offsets[1], ByteOffset::new(256, Magnitude::Unit));
@@ -355,7 +374,6 @@ mod test {
             let bo = ByteOffset::from_str(bo_str);
             assert!(bo.is_err());
         });
-
     }
 
 }
