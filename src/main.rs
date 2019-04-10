@@ -5,12 +5,10 @@ extern crate regex;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
-extern crate untrusted;
 #[macro_use]
 extern crate serde_derive;
 extern crate bytes;
 extern crate docopt;
-extern crate ring;
 extern crate serde;
 #[macro_use]
 extern crate common_failures;
