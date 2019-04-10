@@ -318,3 +318,44 @@ impl std::cmp::Ord for ByteOffset {
 
 //     Ok(val * suffix)
 // }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn bo_decimal_from_string() {
+        let byte_offset_string = vec!["0", "45K", "12Ki", "92M", "999Mi", "012G", "209Gi"];
+
+        let byte_offsets: Vec<ByteOffset> = byte_offset_string.iter().map(|bo| ByteOffset::from_str(bo).expect("Failed to parse")).collect();
+
+        assert_eq!(byte_offsets[0], ByteOffset::new(0, Magnitude::Unit));
+        assert_eq!(byte_offsets[1], ByteOffset::new(45, Magnitude::K));
+        assert_eq!(byte_offsets[2], ByteOffset::new(12, Magnitude::Ki));
+        assert_eq!(byte_offsets[3], ByteOffset::new(92, Magnitude::M));
+        assert_eq!(byte_offsets[4], ByteOffset::new(999, Magnitude::Mi));
+        assert_eq!(byte_offsets[5], ByteOffset::new(12, Magnitude::G));
+        assert_eq!(byte_offsets[6], ByteOffset::new(209, Magnitude::Gi));
+    }
+
+    #[test]
+    fn bo_hex_from_string() {
+        let byte_offset_strings = vec!["0x0", "0x100", "0XFAcBd"];
+        let byte_offsets: Vec<ByteOffset> = byte_offset_strings.iter().map(|bo| ByteOffset::from_str(bo).expect("failed to parse")).collect();
+
+        assert_eq!(byte_offsets[0], ByteOffset::new(0, Magnitude::Unit));
+        assert_eq!(byte_offsets[1], ByteOffset::new(256, Magnitude::Unit));
+        assert_eq!(byte_offsets[2], ByteOffset::new(1027261, Magnitude::Unit));
+    }
+
+    #[test]
+    fn dec_bad_unit() {
+        let bo_dec = vec!["1Ke", "10B", "100AA", "34Li"];
+        bo_dec.iter().for_each(|bo_str| {
+            let bo = ByteOffset::from_str(bo_str);
+            assert!(bo.is_err());
+        });
+
+    }
+
+}
