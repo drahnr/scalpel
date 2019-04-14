@@ -183,3 +183,121 @@ fn run() -> Result<()> {
 }
 
 quick_main!(run);
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use docopt::Docopt;
+
+    #[test]
+    fn docopt_hex() {
+        let argv = || {
+            vec![
+                "scalpel",
+                "stance",
+                "--range",
+                "0x0..0x450",
+                "--output",
+                "a",
+                "in",
+            ]
+        };
+        let args: Args = Docopt::new(USAGE)
+            .and_then(|d| d.argv(argv().into_iter()).deserialize())
+            .unwrap_or_else(|e| e.exit());
+
+        assert!(args.cmd_stance);
+        assert_eq!(
+            args.flag_range,
+            Range::new(
+                ByteOffset::new(0, Magnitude::Unit),
+                ByteOffset::new(1104, Magnitude::Unit)
+            )
+        );
+    }
+
+    #[test]
+    fn docopt_dec() {
+        let argv = || {
+            vec![
+                "scalpel",
+                "stance",
+                "--range",
+                "20Ki..21Ki",
+                "--output",
+                "a",
+                "in",
+            ]
+        };
+        let args: Args = Docopt::new(USAGE)
+            .and_then(|d| d.argv(argv().into_iter()).deserialize())
+            .unwrap_or_else(|e| e.exit());
+
+        assert!(args.cmd_stance);
+        assert_eq!(
+            args.flag_range,
+            Range::new(
+                ByteOffset::new(20, Magnitude::Ki),
+                ByteOffset::new(1024, Magnitude::Unit)
+            )
+        );
+    }
+
+    #[test]
+    fn docopt_bad_hex() {
+        let argv = || {
+            vec![
+                "scalpel",
+                "stance",
+                "--range",
+                "0x20Fg..0xFA",
+                "--output",
+                "a",
+                "in",
+            ]
+        };
+        let args: std::result::Result<Args, docopt::Error> =
+            Docopt::new(USAGE).and_then(|d| d.argv(argv().into_iter()).deserialize());
+        assert!(args.is_err());
+    }
+
+    #[test]
+    fn docopt_bigger_end() {
+        let argv = || {
+            vec![
+                "scalpel",
+                "stance",
+                "--range",
+                "0xFF..0xFE",
+                "--output",
+                "a",
+                "in",
+            ]
+        };
+        let args: std::result::Result<Args, docopt::Error> =
+            Docopt::new(USAGE).and_then(|d| d.argv(argv().into_iter()).deserialize());
+        assert!(args.is_err());
+    }
+
+    #[test]
+    fn docopt_hex_and_dec() {
+        let argv = || {
+            vec![
+                "scalpel", "stance", "--range", "0xFF..1K", "--output", "a", "in",
+            ]
+        };
+        let args: Args = Docopt::new(USAGE)
+            .and_then(|d| d.argv(argv().into_iter()).deserialize())
+            .unwrap_or_else(|e| e.exit());
+
+        assert!(args.cmd_stance);
+        assert_eq!(
+            args.flag_range,
+            Range::new(
+                ByteOffset::new(255, Magnitude::Unit),
+                ByteOffset::new(745, Magnitude::Unit)
+            )
+        );
+    }
+
+}
