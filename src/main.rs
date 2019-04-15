@@ -39,8 +39,8 @@ scalpel
 
 Usage:
   scalpel stance --range=<range> --output=<output> <input> [--file-format=<format>]
-  scalpel stitch (--files=<files> --offset=<offset>)... --output=<output> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
-  scalpel graft  --replace=<replace> --range=<range> --output=<output> <input> [--fill-pattern=<fill_pattern>] [--file-format=<format>]
+  scalpel stitch (--input=<input> --offset=<offset>)... [--fill-pattern=<fill_pattern>] [--file-format=<format>] --output=<output>
+  scalpel graft --replace=<replace> --range=<range>  [--fill-pattern=<fill_pattern>] [--file-format=<format>] --output=<output> <input>
   scalpel (-h | --help)
   scalpel (-v |--version)
 
@@ -65,9 +65,9 @@ struct Args {
     cmd_stitch: bool,
     cmd_graft: bool,
     arg_input: PathBuf,
-    flag_files: Vec<PathBuf>,
+    flag_input: Vec<PathBuf>,
     flag_offset: Vec<ByteOffset>,
-    flag_range: Range,
+    flag_range: Option<Range>,
     flag_output: PathBuf,
     flag_fill_pattern: Option<FillPattern>,
     flag_file_format: Option<MetaInfo>,
@@ -95,8 +95,9 @@ fn run() -> Result<()> {
         Ok(())
     } else if args.cmd_stance {
         // command stance
-        let start = args.flag_range.start;
-        let size = args.flag_range.size;
+        let range = args
+            .flag_range
+            .ok_or_else(|| format_err!("Missing range for stance"))?;
 
         // guess meta_in from file
         let path = args.arg_input;
@@ -107,7 +108,7 @@ fn run() -> Result<()> {
         let mut in_bytes = AnnotatedBytes::load(&path, meta_in)?;
 
         // do the cutting
-        in_bytes.stance(start, size);
+        in_bytes.stance(range.start, range.size);
 
         // save output file
         let meta_out = args.flag_file_format.unwrap_or(meta_in);
@@ -118,7 +119,7 @@ fn run() -> Result<()> {
         // command stitch binaries together
 
         // construct vec <AnnotatedBytes>
-        let stitch_vec = args.flag_files.into_iter().try_fold(
+        let stitch_vec = args.flag_input.into_iter().try_fold(
             // Vec::<AnnotatedBytes>::with_capacity(10),
             Vec::<AnnotatedBytes>::new(),
             |mut collection, path| {
@@ -149,8 +150,9 @@ fn run() -> Result<()> {
     } else if args.cmd_graft {
         // command graft
 
-        let start = args.flag_range.start;
-        let size = args.flag_range.size;
+        let range = args
+            .flag_range
+            .ok_or_else(|| format_err!("Missing range for graft"))?;
 
         // guess meta_in from files
         let path_in = args.arg_input;
@@ -167,8 +169,8 @@ fn run() -> Result<()> {
         // put graft_bytes into in_bytes
         in_bytes.graft(
             graft_bytes,
-            start,
-            size,
+            range.start,
+            range.size,
             args.flag_fill_pattern.unwrap_or_default(),
         )?;
 
@@ -209,10 +211,10 @@ mod test {
         assert!(args.cmd_stance);
         assert_eq!(
             args.flag_range,
-            Range::new(
+            Some(Range::new(
                 ByteOffset::new(0, Magnitude::Unit),
                 ByteOffset::new(1104, Magnitude::Unit)
-            )
+            ))
         );
     }
 
@@ -236,10 +238,10 @@ mod test {
         assert!(args.cmd_stance);
         assert_eq!(
             args.flag_range,
-            Range::new(
+            Some(Range::new(
                 ByteOffset::new(20, Magnitude::Ki),
                 ByteOffset::new(1024, Magnitude::Unit)
-            )
+            ))
         );
     }
 
@@ -293,10 +295,10 @@ mod test {
         assert!(args.cmd_stance);
         assert_eq!(
             args.flag_range,
-            Range::new(
+            Some(Range::new(
                 ByteOffset::new(255, Magnitude::Unit),
                 ByteOffset::new(745, Magnitude::Unit)
-            )
+            ))
         );
     }
 

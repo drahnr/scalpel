@@ -38,20 +38,22 @@ impl Default for MetaInfo {
 }
 
 impl MetaInfo {
-    pub fn from_content_old(first_bytes: &[u8]) -> Result<MetaInfo> {
+    pub fn from_header_bytes(first_bytes: &[u8]) -> Result<MetaInfo> {
         match tree_magic::from_u8(first_bytes).as_str() {
             "binary" => Ok(MetaInfo::Bin),
             "ascii/text" => Ok(MetaInfo::IntelHex), // TODO actually attempt to parse maybe?
             _ => Err(format_err!("Unsupported error type")),
         }
     }
+
     pub fn from_content(path: &Path) -> Result<MetaInfo> {
         match tree_magic::from_filepath(path).as_str() {
             "application/octet-stream" => Ok(MetaInfo::Bin),
-            "Ascii/text" => Ok(MetaInfo::IntelHex),
+            "ascii/text" => Ok(MetaInfo::IntelHex),
             _ => Err(format_err!("Unspupported File Type")),
         }
     }
+
     pub fn from_file_extension(path: &Path) -> Result<MetaInfo> {
         match path.extension().and_then(|ext| ext.to_str()) {
             Some("bin") => Ok(MetaInfo::Bin),
