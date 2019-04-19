@@ -156,53 +156,7 @@ impl<'de> de::Deserialize<'de> for ByteOffset {
             where
                 E: de::Error,
             {
-                lazy_static! {
-                    static ref REGEX: Regex =
-                        Regex::new(r"^(?:(0[xX])([A-Fa-f0-9]+))|(?:[0-9]+([KMGTE]i?)?)$").unwrap();
-                }
-
-                let byte_offset = REGEX
-                    .captures(value)
-                    .ok_or_else(|| Err::<Captures, Error>(format_err!("Failed to parse value")))
-                    .and_then(|captures| {
-                        if captures.len() == 5 {
-                            let byte_offset: ByteOffset = match &captures.get(1) {
-                                Some(_) => {
-                                    let num_str = &captures[2];
-                                    let num = u64::from_str_radix(num_str, 16).map_err(|e| {
-                                        Err::<Captures, Error>(format_err!(
-                                            "Failed to parse u64 from hex {}",
-                                            e
-                                        ))
-                                    })?;
-                                    ByteOffset::new(num, Magnitude::Unit)
-                                }
-                                None => {
-                                    let num_str = &captures[3];
-                                    let magnitude_str = &captures[4];
-                                    let num = num_str.parse::<u64>().map_err(|e| {
-                                        Err::<Captures, Error>(format_err!(
-                                            "Failed to parse u64 {}",
-                                            e
-                                        ))
-                                    })?;
-                                    let magnitude =
-                                        Magnitude::parse(magnitude_str).map_err(|e| {
-                                            Err::<Captures, Error>(format_err!(
-                                                "Failed to parse magnitude {}",
-                                                e
-                                            ))
-                                        })?;
-                                    ByteOffset::new(num, magnitude)
-                                }
-                            };
-                            Ok(byte_offset)
-                        } else {
-                            Ok(Default::default())
-                        }
-                    })
-                    .map_err(|e| E::custom(format!("{:?}", e)))?;
-                Ok(byte_offset)
+                ByteOffset::from_str(value).map_err(|e| E::custom(format!("{:?}", e)))
             }
         }
         deserializer.deserialize_str(ByteOffsetVisitor)
