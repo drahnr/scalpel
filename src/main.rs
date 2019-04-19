@@ -302,4 +302,45 @@ mod test {
         );
     }
 
+    #[test]
+    fn docopt_byteoffset() {
+        let argv = || {
+            vec![
+                "scalpel",
+                "stitch",
+                "--input",
+                "byets",
+                "--offset",
+                "10",
+                "--input",
+                "byets",
+                "--offset",
+                "0x100",
+                "--input",
+                "bytes",
+                "--offset",
+                "1Ki",
+                "--output",
+                "stance.bin",
+            ]
+        };
+        let args: Args = Docopt::new(USAGE)
+            .and_then(|d| d.argv(argv().into_iter()).deserialize())
+            .unwrap_or_else(|e| e.exit());
+
+        let mut offset_it = args.flag_offset.iter();
+        assert_eq!(
+            offset_it.next().unwrap(),
+            &ByteOffset::new(10, Magnitude::Unit)
+        );
+        assert_eq!(
+            offset_it.next().unwrap(),
+            &ByteOffset::new(256, Magnitude::Unit)
+        );
+        assert_eq!(
+            offset_it.next().unwrap(),
+            &ByteOffset::new(1, Magnitude::Ki)
+        );
+    }
+
 }
