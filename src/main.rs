@@ -28,8 +28,8 @@ mod byte_offset;
 mod intelhex;
 mod range;
 
-mod refactored;
-use crate::refactored::{AnnotatedBytes, FillPattern, MetaInfo, Result};
+mod ops;
+use crate::ops::{AnnotatedBytes, FillPattern, MetaInfo, Result};
 
 use crate::byte_offset::*;
 use crate::range::*;

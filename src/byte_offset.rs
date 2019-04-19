@@ -4,7 +4,7 @@ use serde::de;
 use std::fmt;
 use std::str::FromStr;
 
-use crate::refactored::Result;
+use crate::ops::Result;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Magnitude {
