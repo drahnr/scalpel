@@ -38,6 +38,7 @@ impl Default for MetaInfo {
 }
 
 impl MetaInfo {
+    #[allow(dead_code)]
     pub fn from_header_bytes(first_bytes: &[u8]) -> Result<MetaInfo> {
         match tree_magic::from_u8(first_bytes).as_str() {
             "binary" => Ok(MetaInfo::Bin),
