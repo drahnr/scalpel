@@ -9,6 +9,9 @@ keywords = ["binary", "modify", "hex", "merge", "tool"]
 repository = "https://github.com/drahnr/scalpel"
 description = "binary modification tool, cut, stitch, replace, sign"
 
+[package.metadata.release]
+pre-release-commit-message = "chore/release: 🎉 {{version}} 🎉"
+
 [badges]
 maintenance = { status = "actively-developed" }
 

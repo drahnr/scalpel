@@ -1,0 +1,3 @@
+pre-release-commit-message = "chore/release: 🎉 {{version}} 🎉"
+pre-release-hook = ["cargo", "test"]
+tag-prefix = "v"
