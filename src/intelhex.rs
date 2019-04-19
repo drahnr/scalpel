@@ -47,8 +47,6 @@ fn read_hex2string(name: &Path) -> Result<String> {
 }
 
 pub fn write_bin_as_hex_to_file(path: &Path, mut bytes: BytesMut) -> Result<()> {
-    // let vec_content = bytes.to_vec();
-
     let byte_count = 16;
     let rec_count: f32 = bytes.len() as f32 / byte_count as f32;
     let mut records: Vec<Record> = Vec::new();
@@ -94,23 +92,9 @@ mod test {
     use std::path::PathBuf;
 
     #[test]
-    fn test_read_string() {
-        let file = PathBuf::from("Cargo.toml");
-        let mut string = read_hex2string(file.as_ref()).expect("Failed to read file");
-
-        string.truncate(9);
-
-        assert_eq!(string, String::from("[package]"));
-    }
-
-    #[test]
     fn test_read_string_err() {
         let file = PathBuf::from("NonExisitingFileName");
-
         let res = read_hex2string(file.as_ref());
-
-        // is there a way to test for a specific error?
-        // something with assert_eq!( res, ScalpelError::OpeneningError)
         assert!(res.is_err());
     }
 
@@ -140,8 +124,6 @@ mod test {
         let buf = BytesMut::from(vec![0, 0]);
         let res = hex_record2bin(record, buf.clone());
 
-        // is there a way to test for a specific error?
-        // something with assert_eq!( res, ScalpelError::HexError)
         assert!(res.is_err());
     }
 
