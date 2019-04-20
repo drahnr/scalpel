@@ -1,0 +1,5 @@
+pre-release-commit-message = "chore/release: 🎉 {{version}} 🎉"
+# TODO creates tmp files which cargo release does not appreciate
+#pre-release-hook = ["cargo", "test"]
+tag-prefix = "v"
+no-dev-version = true
