@@ -65,7 +65,7 @@ jobs:
       resource: git-pull-request-resource
       trigger: true
 
-    - aggregate:
+    - in_parallel:
       - task: validate-glibc
         timeout: 15m
         image: env-glibc
@@ -165,7 +165,7 @@ jobs:
       resource: git-clone-resource
       trigger: true
 
-    - aggregate:
+    - in_parallel:
       - task: validate-glibc
         timeout: 15m
         image: env-glibc
