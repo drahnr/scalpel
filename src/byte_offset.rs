@@ -329,5 +329,4 @@ mod test {
             assert!(bo.is_err());
         });
     }
-
 }

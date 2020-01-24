@@ -342,5 +342,4 @@ mod test {
             &ByteOffset::new(1, Magnitude::Ki)
         );
     }
-
 }
