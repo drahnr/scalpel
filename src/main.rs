@@ -1,25 +1,7 @@
-#[macro_use]
-extern crate lazy_static;
-extern crate regex;
-
-#[macro_use]
-extern crate log;
-extern crate env_logger;
-#[macro_use]
-extern crate serde_derive;
-extern crate bytes;
-extern crate docopt;
-extern crate serde;
-#[macro_use]
-extern crate common_failures;
-#[macro_use]
-extern crate failure;
-extern crate ihex;
-extern crate rand;
-
-extern crate tree_magic;
-
+use common_failures::quick_main;
 use docopt::Docopt;
+use failure::format_err;
+use serde_derive::Deserialize;
 use std::path::PathBuf;
 
 use failure::Error;

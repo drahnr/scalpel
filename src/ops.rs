@@ -1,14 +1,16 @@
 use crate::byte_offset::*;
 use crate::intelhex::{convert_hex2bin, write_bin_as_hex_to_file};
 use bytes::BytesMut;
+use log::warn;
 use rand::Rng;
+use serde_derive::Deserialize;
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::path::Path;
 use std::vec::Vec;
 use tree_magic;
 
-use failure::Error;
+use failure::{format_err, Error};
 
 pub type Result<X> = std::result::Result<X, Error>;
 
@@ -105,7 +107,7 @@ impl AnnotatedBytes {
                 file.read_to_end(&mut bytes)?;
 
                 Ok(AnnotatedBytes {
-                    bytes: BytesMut::from(bytes),
+                    bytes: BytesMut::from(&bytes[..]),
                 })
             }
             MetaInfo::IntelHex => Ok(AnnotatedBytes {
@@ -124,7 +126,7 @@ impl AnnotatedBytes {
 
         if size.as_usize() < self.bytes.len() {
             // split off everything after size
-            self.bytes.split_off(size.as_usize());
+            self.bytes.truncate(size.as_usize());
         }
     }
 

@@ -1,4 +1,5 @@
-use failure::Error;
+use failure::{format_err, Error};
+use lazy_static::lazy_static;
 use regex::{Captures, Regex};
 use serde::de;
 use std::fmt;
