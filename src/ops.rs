@@ -177,7 +177,7 @@ impl AnnotatedBytes {
         // get length of replacing part
         let prefix_len = &output.len();
 
-        if &replace.bytes.len() > &size.as_usize() {
+        if replace.bytes.len() > size.as_usize() {
             return Err(format_err!(
                 "Failed to graft bytes, size is smaller than replacing bytes"
             ));

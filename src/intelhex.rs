@@ -42,7 +42,6 @@ fn read_hex2string(name: &Path) -> Result<String> {
 
     let mut buf = String::new();
     file.read_to_string(&mut buf)?;
-    let buf = buf.to_string();
 
     Ok(buf)
 }

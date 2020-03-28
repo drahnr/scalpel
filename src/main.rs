@@ -16,7 +16,7 @@ use crate::ops::{AnnotatedBytes, FillPattern, MetaInfo, Result};
 use crate::byte_offset::*;
 use crate::range::*;
 
-const USAGE: &'static str = "
+const USAGE: &str = "
 scalpel
 
 Usage:
@@ -58,8 +58,8 @@ struct Args {
     flag_help: bool,
 }
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-const NAME: &'static str = env!("CARGO_PKG_NAME");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+const NAME: &str = env!("CARGO_PKG_NAME");
 
 fn run() -> Result<()> {
     env_logger::init();
