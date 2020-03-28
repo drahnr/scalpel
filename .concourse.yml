@@ -133,6 +133,40 @@ jobs:
             context: format-check
             status: failure
 
+      - task: clippy-check
+        timeout: 15m
+        image: env-glibc
+        config:
+          platform: linux
+          inputs:
+          - name: git-pull-request-resource
+          run:
+            path: sh
+            args:
+            - -exc
+            - |
+              export CARGO_HOME="$(pwd)/../cargo"
+              rustc --version --verbose
+              rustup component add clippy
+              cargo clippy -- --check
+            dir: git-pull-request-resource
+          caches:
+          - path: cargo
+
+        on_success:
+          put: git-pull-request-resource
+          params:
+            path: git-pull-request-resource
+            context: clippy-check
+            status: success
+
+        on_failure:
+          put: git-pull-request-resource
+          params:
+            path: git-pull-request-resource
+            context: clippy-check
+            status: failure
+
  #     - task: validate-musl
  #       timeout: 15m
  #       image: env-musl
