@@ -68,7 +68,7 @@ impl<'de> de::Deserialize<'de> for Range {
                                                 e
                                             ))
                                         })?;
-                                    if &start > &end {
+                                    if start > end {
                                         return Err(Err(format_err!(
                                             "Start {} must be greater than end {}",
                                             &start,
