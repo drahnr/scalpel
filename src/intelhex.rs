@@ -1,5 +1,6 @@
 use crate::ops::Result;
 use bytes::BytesMut;
+use failure::format_err;
 use ihex::reader::Reader;
 use ihex::record::*;
 use ihex::writer;
@@ -112,7 +113,8 @@ mod test {
     #[test]
     fn test_eof_record() {
         let record = Record::EndOfFile;
-        let buf = BytesMut::from(vec![0, 0]);
+        let buf_vec = [0, 0];
+        let buf = BytesMut::from(&buf_vec[..]);
         let res = hex_record2bin(record, buf.clone());
 
         assert_eq!(buf, res.unwrap());
@@ -120,8 +122,9 @@ mod test {
 
     #[test]
     fn test_bad_record() {
+        let buf_vec = [0, 0];
+        let buf = BytesMut::from(&buf_vec[..]);
         let record = Record::ExtendedLinearAddress(8);
-        let buf = BytesMut::from(vec![0, 0]);
         let res = hex_record2bin(record, buf.clone());
 
         assert!(res.is_err());

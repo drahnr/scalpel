@@ -1,4 +1,7 @@
+use failure::format_err;
 use failure::Error;
+use lazy_static::lazy_static;
+use log::debug;
 use regex::{Captures, Regex};
 use serde::de;
 use std::fmt;
