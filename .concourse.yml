@@ -1,8 +1,8 @@
 resource_types:
 - name: pull-request
-  type: docker-image
+  type: registry-image
   source:
-    repository: jtarchie/pr
+    repository: teliaoss/github-pr-resource
 
 resources:
 - name: git-clone-resource
@@ -28,7 +28,7 @@ resources:
 - name: git-pull-request-resource
   type: pull-request
   source:
-    repo: drahnr/scalpel
+    repository: drahnr/scalpel
     access_token: ((sirmergealot-github-token))
 
 
@@ -40,11 +40,9 @@ resources:
 #    max_concurrent_uploads: 2
 
 - name: env-glibc
-  type: docker-image
+  type: registry-image
   source:
     repository: rust
-    max_concurrent_downloads: 2
-    max_concurrent_uploads: 2
 
 #- name: gh-release
 #  type: github-release
