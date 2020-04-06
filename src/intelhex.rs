@@ -100,9 +100,17 @@ mod test {
 
     #[test]
     fn test_hex_convert() {
-        let file = PathBuf::from("tmp/test.hex");
+        let file = ":1000000001000000000000000200000000000000ED
+:1000100003000000000000000400000000000000D9
+:1000200005000000000000000600000000000000C5
+:1000300007000000000000000800000000000000B1
+:1000400009000000000000000A000000000000009D
+:100050000B00000000000000FE0000000000000097
+:00000001FF";
 
-        let res = convert_hex2bin(&file);
+        let mut reader = Reader::new_stopping_after_error_and_eof(file, false, true);
+
+        let res = reader.try_fold(BytesMut::new(), |bin, record| hex_record2bin(record?, bin));
 
         println!("{:?}", res);
 
@@ -131,7 +139,14 @@ mod test {
 
     #[test]
     fn test_write_hex() {
-        let name = PathBuf::from("tmp/test_write.hex");
+        let name = PathBuf::from("tmp_write.hex");
+        let hex = ":1000000001000000000000000200000000000000ED
+:1000100003000000000000000400000000000000D9
+:1000200005000000000000000600000000000000C5
+:1000300007000000000000000800000000000000B1
+:1000400009000000000000000A000000000000009D
+:100050000B00000000000000FE0000000000000097
+:00000001FF";
         let mut bytes = BytesMut::with_capacity(255);
 
         bytes.put_u64_le(1);
@@ -151,7 +166,7 @@ mod test {
 
         let mut hex_file = OpenOptions::new()
             .read(true)
-            .open("tmp/test_write.hex")
+            .open(name.clone())
             .map_err(|err| format_err!("{}", err))
             .expect("Failed to open stitched file");
 
@@ -161,23 +176,21 @@ mod test {
             .expect("Failed to read hex file");
         println!("{}", content);
 
-        let hex = ":1000000001000000000000000200000000000000ED
-:1000100003000000000000000400000000000000D9
-:1000200005000000000000000600000000000000C5
-:1000300007000000000000000800000000000000B1
-:1000400009000000000000000A000000000000009D
-:100050000B00000000000000FE0000000000000097
-:00000001FF";
-
         // add a more sophisticated test
         assert_eq!(content, hex);
+
+        // delete file
+        std::fs::remove_file(name).expect("failed to delete tmp file");
     }
 
     #[test]
     fn bad_records() {
-        let bad_hex = PathBuf::from("tmp/bad_records.hex");
+        let bad_hex = ":10000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED
+:10001000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD9
+:00000001FF";
 
-        let res = convert_hex2bin(bad_hex.as_ref());
+        let mut reader = Reader::new_stopping_after_error_and_eof(bad_hex, false, true);
+        let res = reader.try_fold(BytesMut::new(), |bin, record| hex_record2bin(record?, bin));
 
         assert!(res.is_err());
     }
