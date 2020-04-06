@@ -146,7 +146,7 @@ jobs:
               export CARGO_HOME="$(pwd)/../cargo"
               rustc --version --verbose
               rustup component add clippy
-              cargo clippy 
+              cargo clippy --all-targets --all-features -- -D warnings
             dir: git-pull-request-resource
           caches:
           - path: cargo

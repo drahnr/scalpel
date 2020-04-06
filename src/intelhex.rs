@@ -124,7 +124,7 @@ mod test {
         let buf_vec = [0, 0];
         let buf = BytesMut::from(&buf_vec[..]);
         let record = Record::ExtendedLinearAddress(8);
-        let res = hex_record2bin(record, buf.clone());
+        let res = hex_record2bin(record, buf);
 
         assert!(res.is_err());
     }
