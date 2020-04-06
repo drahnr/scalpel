@@ -106,9 +106,10 @@ mod test {
 :1000300007000000000000000800000000000000B1
 :1000400009000000000000000A000000000000009D
 :100050000B00000000000000FE0000000000000097
-:00000001FF";
+:00000001FF"
+            .to_string();
 
-        let mut reader = Reader::new_stopping_after_error_and_eof(file, false, true);
+        let mut reader = Reader::new_stopping_after_error_and_eof(&file, false, true);
 
         let res = reader.try_fold(BytesMut::new(), |bin, record| hex_record2bin(record?, bin));
 
@@ -146,7 +147,8 @@ mod test {
 :1000300007000000000000000800000000000000B1
 :1000400009000000000000000A000000000000009D
 :100050000B00000000000000FE0000000000000097
-:00000001FF";
+:00000001FF"
+            .to_string();
         let mut bytes = BytesMut::with_capacity(255);
 
         bytes.put_u64_le(1);
@@ -166,7 +168,7 @@ mod test {
 
         let mut hex_file = OpenOptions::new()
             .read(true)
-            .open(name.clone())
+            .open(&name)
             .map_err(|err| format_err!("{}", err))
             .expect("Failed to open stitched file");
 
@@ -187,9 +189,10 @@ mod test {
     fn bad_records() {
         let bad_hex = ":10000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED
 :10001000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD9
-:00000001FF";
+:00000001FF"
+            .to_string();
 
-        let mut reader = Reader::new_stopping_after_error_and_eof(bad_hex, false, true);
+        let mut reader = Reader::new_stopping_after_error_and_eof(&bad_hex, false, true);
         let res = reader.try_fold(BytesMut::new(), |bin, record| hex_record2bin(record?, bin));
 
         assert!(res.is_err());
